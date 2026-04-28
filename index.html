@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Prompts v2 - Ferreira Eletrotech</title>
+    <title>Gerador de Prompts v2.1 - Ferreira Eletrotech</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -27,25 +27,33 @@
             --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
             --radius: 12px;
         }
+        [data-theme="dark"] {
+            --primary: #4a9eff;
+            --primary-dark: #2d7dd2;
+            --primary-light: #1e3a5f;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --gradient: linear-gradient(135deg, #2563eb, #7c3aed);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
         }
         .header {
-            background: var(--gradient);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            background: var(--gradient); color: white;
+            padding: 1.5rem; text-align: center;
+            position: relative; overflow: hidden;
         }
         .header::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
+            content: ''; position: absolute; top: -50%; left: -50%;
             width: 200%; height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
             animation: pulse 4s ease-in-out infinite;
@@ -62,17 +70,27 @@
             border-radius: 50px; font-size: 0.82rem; margin-top: 0.5rem;
             position: relative; backdrop-filter: blur(5px);
         }
-        .header .version {
+        .header .top-bar {
             position: absolute; top: 0.75rem; right: 1rem;
+            display: flex; gap: 0.5rem; align-items: center;
+        }
+        .header .version {
             background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem;
             border-radius: 50px; font-size: 0.7rem; font-weight: 600;
         }
+        .theme-toggle {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-size: 1rem; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.35); }
         .container { max-width: 960px; margin: 0 auto; padding: 1.25rem; }
         .card {
             background: var(--card); border-radius: var(--radius);
             border: 1px solid var(--border); padding: 1.5rem;
             margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);
-            transition: box-shadow 0.2s;
+            transition: box-shadow 0.2s, background 0.3s, border-color 0.3s;
         }
         .card:hover { box-shadow: var(--shadow-md); }
         .card-title {
@@ -90,7 +108,7 @@
             border: 1.5px solid var(--border); border-radius: 8px;
             font-size: 0.9rem; font-family: inherit;
             background: var(--bg); color: var(--text);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
         }
         select:focus, input:focus, textarea:focus {
             outline: none; border-color: var(--primary);
@@ -107,7 +125,8 @@
         .chip {
             padding: 0.45rem 1rem; border: 1.5px solid var(--border);
             border-radius: 50px; font-size: 0.82rem; font-weight: 500;
-            cursor: pointer; transition: all 0.2s; background: white; user-select: none;
+            cursor: pointer; transition: all 0.2s; background: var(--card); user-select: none;
+            color: var(--text);
         }
         .chip:hover { border-color: var(--primary); color: var(--primary); }
         .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -126,7 +145,6 @@
         .btn-success:hover { background: #059669; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-danger:hover { background: #dc2626; }
-        .btn-warning { background: var(--warning); color: white; }
         .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
         .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
         .generate-section { text-align: center; margin: 1.5rem 0; }
@@ -146,8 +164,9 @@
         .result-content { padding: 1.25rem; white-space: pre-wrap; font-size: 0.88rem; line-height: 1.7; color: var(--text); }
         .copy-btn {
             padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px;
-            background: white; border: 1px solid var(--border);
+            background: var(--card); border: 1px solid var(--border);
             cursor: pointer; font-weight: 500; transition: all 0.2s; font-family: inherit;
+            color: var(--text);
         }
         .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
         .copy-btn.copied { background: var(--success); color: white; border-color: var(--success); }
@@ -186,7 +205,7 @@
         .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 0.75rem; }
         .template-card {
             padding: 0.9rem; border: 1.5px solid var(--border); border-radius: 10px;
-            text-align: center; cursor: pointer; transition: all 0.2s; background: white;
+            text-align: center; cursor: pointer; transition: all 0.2s; background: var(--card);
         }
         .template-card:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .template-card .emoji { font-size: 1.4rem; margin-bottom: 0.3rem; }
@@ -194,12 +213,10 @@
         .template-card .desc { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; }
         .footer { text-align: center; padding: 2rem 1rem; color: var(--text-secondary); font-size: 0.8rem; }
         .footer a { color: var(--primary); text-decoration: none; }
-        /* Schedule */
         .schedule-item {
             background: var(--card); border: 1px solid var(--border);
             border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;
-            display: flex; gap: 1rem; align-items: flex-start;
-            transition: all 0.2s;
+            display: flex; gap: 1rem; align-items: flex-start; transition: all 0.2s;
         }
         .schedule-item:hover { box-shadow: var(--shadow-md); }
         .schedule-item .sch-time {
@@ -212,14 +229,10 @@
         .schedule-item .sch-content .sch-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
         .schedule-item .sch-content .sch-preview { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
         .schedule-item .sch-actions { display: flex; gap: 0.4rem; align-items: center; }
-        .badge {
-            display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px;
-            font-size: 0.7rem; font-weight: 600;
-        }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; }
         .badge-pending { background: #fef3c7; color: #92400e; }
         .badge-published { background: #d1fae5; color: #065f46; }
         .badge-failed { background: #fee2e2; color: #991b1b; }
-        /* Settings */
         .settings-section { margin-bottom: 1.5rem; }
         .settings-section h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -227,26 +240,22 @@
         .status-dot.disconnected { background: var(--danger); }
         .info-box {
             background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-            padding: 1rem; font-size: 0.82rem; color: #1e40af; line-height: 1.5;
-            margin-bottom: 1rem;
+            padding: 1rem; font-size: 0.82rem; color: #1e40af; line-height: 1.5; margin-bottom: 1rem;
         }
+        [data-theme="dark"] .info-box { background: #1e3a5f; border-color: #2563eb; color: #93c5fd; }
         .info-box a { color: #1d4ed8; }
-        /* Stats */
+        [data-theme="dark"] .info-box a { color: #60a5fa; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
-        .stat-card {
-            background: white; border: 1px solid var(--border); border-radius: 10px;
-            padding: 1rem; text-align: center;
-        }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
         .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
         .stat-card .stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; }
-        /* Modal */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;
         }
         .modal-overlay.visible { display: flex; }
         .modal {
-            background: white; border-radius: var(--radius); padding: 1.5rem;
+            background: var(--card); border-radius: var(--radius); padding: 1.5rem;
             max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto;
             box-shadow: var(--shadow-lg);
         }
@@ -255,12 +264,57 @@
             position: absolute; top: 1rem; right: 1rem; background: none;
             border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);
         }
+        /* Preview */
+        .preview-phone {
+            background: var(--card); border: 2px solid var(--border); border-radius: 20px;
+            max-width: 380px; margin: 0 auto; overflow: hidden; box-shadow: var(--shadow-lg);
+        }
+        .preview-header {
+            display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .preview-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--gradient); display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 0.8rem; font-weight: 700;
+        }
+        .preview-username { font-weight: 600; font-size: 0.85rem; }
+        .preview-image {
+            width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--primary-light), var(--border));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: var(--primary);
+        }
+        .preview-caption {
+            padding: 0.75rem 1rem; font-size: 0.82rem; line-height: 1.5;
+            max-height: 150px; overflow-y: auto; white-space: pre-wrap;
+        }
+        .preview-hashtags { padding: 0 1rem 0.75rem; font-size: 0.78rem; color: var(--primary); line-height: 1.6; }
+        .char-counter {
+            font-size: 0.75rem; color: var(--text-secondary); text-align: right;
+            margin-top: 0.25rem;
+        }
+        .char-counter.warning { color: var(--warning); }
+        .char-counter.danger { color: var(--danger); font-weight: 600; }
+        /* Topic chips */
+        .topic-chips {
+            display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;
+        }
+        .topic-chip {
+            padding: 0.3rem 0.7rem; border: 1px solid var(--border);
+            border-radius: 50px; font-size: 0.75rem; cursor: pointer;
+            background: var(--card); color: var(--text-secondary);
+            transition: all 0.2s; user-select: none;
+        }
+        .topic-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="version">v2.0</div>
+    <div class="top-bar">
+        <div class="version">v2.1</div>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar tema">🌙</button>
+    </div>
     <h1>⚡ Gerador de Prompts para Instagram</h1>
     <p>Crie, agende e publique conteudo profissional automaticamente</p>
     <div class="brand">@ferreira.eletrotech - Ferreira Solucoes</div>
@@ -279,10 +333,7 @@
     <!-- TAB: Generator -->
     <div id="tab-generator">
         <div class="card">
-            <div class="card-title">
-                <div class="icon" style="background:#dbeafe;color:#2563eb;">📱</div>
-                Tipo de Postagem
-            </div>
+            <div class="card-title"><div class="icon" style="background:#dbeafe;color:#2563eb;">📱</div>Tipo de Postagem</div>
             <div class="chip-group" id="postType">
                 <div class="chip active" data-value="feed">Feed</div>
                 <div class="chip" data-value="reels">Reels</div>
@@ -291,10 +342,7 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-title">
-                <div class="icon" style="background:#fef3c7;color:#d97706;">📂</div>
-                Categoria do Conteudo
-            </div>
+            <div class="card-title"><div class="icon" style="background:#fef3c7;color:#d97706;">📂</div>Categoria do Conteudo</div>
             <div class="chip-group" id="category">
                 <div class="chip active" data-value="educacional">Educacional</div>
                 <div class="chip" data-value="dica">Dica Rapida</div>
@@ -309,10 +357,7 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-title">
-                <div class="icon" style="background:#d1fae5;color:#059669;">⚙️</div>
-                Detalhes da Postagem
-            </div>
+            <div class="card-title"><div class="icon" style="background:#d1fae5;color:#059669;">⚙️</div>Detalhes da Postagem</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Tom de Voz</label>
@@ -327,7 +372,7 @@
                 </div>
                 <div class="form-group">
                     <label>Servico em Destaque</label>
-                    <select id="service">
+                    <select id="service" onchange="updateTopicSuggestions()">
                         <option value="geral">Geral (todos os servicos)</option>
                         <optgroup label="Eletrica">
                             <option value="instalacao_eletrica">Instalacao Eletrica</option>
@@ -352,8 +397,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>Tema / Assunto Especifico (opcional)</label>
-                <input type="text" id="topic" placeholder="Ex: Como economizar energia, Montagem de PC gamer, Troca de pasta termica...">
+                <label>Tema / Assunto Especifico</label>
+                <select id="topicSelect" onchange="onTopicSelectChange()">
+                    <option value="">Aleatorio (escolha automatica)</option>
+                </select>
+                <div class="topic-chips" id="topicChips"></div>
+                <input type="text" id="topicCustom" placeholder="Ou digite um tema personalizado..." style="margin-top:0.5rem;display:none;">
             </div>
             <div class="form-group">
                 <label>Publico-Alvo</label>
@@ -402,11 +451,7 @@
         </div>
         <div class="card">
             <div class="card-title"><div class="icon" style="background:#dbeafe;color:#2563eb;">📋</div>Fila de Postagens Agendadas</div>
-            <div id="scheduleList">
-                <p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">
-                    Nenhum post agendado. Gere um prompt e clique em "Agendar Post"!
-                </p>
-            </div>
+            <div id="scheduleList"><p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum post agendado. Gere um prompt e clique em "Agendar Post"!</p></div>
         </div>
         <div class="card">
             <div class="card-title"><div class="icon" style="background:#d1fae5;color:#059669;">➕</div>Agendar Novo Post Manualmente</div>
@@ -415,18 +460,9 @@
                 <textarea id="manualCaption" placeholder="Cole aqui a legenda do seu post..."></textarea>
             </div>
             <div class="form-grid-3">
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="scheduleDate">
-                </div>
-                <div class="form-group">
-                    <label>Hora</label>
-                    <input type="time" id="scheduleTime" value="10:00">
-                </div>
-                <div class="form-group">
-                    <label>URL da Imagem</label>
-                    <input type="url" id="scheduleImage" placeholder="https://...">
-                </div>
+                <div class="form-group"><label>Data</label><input type="date" id="scheduleDate"></div>
+                <div class="form-group"><label>Hora</label><input type="time" id="scheduleTime" value="10:00"></div>
+                <div class="form-group"><label>URL da Imagem</label><input type="url" id="scheduleImage" placeholder="https://..."></div>
             </div>
             <div class="form-group">
                 <label>Hashtags</label>
@@ -449,16 +485,16 @@
         <div class="card">
             <div class="card-title"><div class="icon" style="background:#fef3c7;color:#d97706;">⚙️</div>Configuracoes da API do Instagram</div>
             <div class="info-box">
-                <strong>Como conectar sua conta do Instagram:</strong><br>
-                Para publicar automaticamente, voce precisa de uma conta <strong>Profissional do Instagram</strong> conectada a uma <strong>Pagina do Facebook</strong>, e um <strong>App Meta</strong> configurado.<br><br>
+                <strong>Como conectar sua conta do Instagram para postagem automatica:</strong><br><br>
                 <strong>Passo a passo:</strong><br>
-                1. Converta sua conta para <a href="https://help.instagram.com/502981923235522" target="_blank">Conta Profissional</a><br>
-                2. Conecte a uma <a href="https://www.facebook.com/pages/create" target="_blank">Pagina do Facebook</a><br>
-                3. Crie um app em <a href="https://developers.facebook.com/apps/" target="_blank">Meta for Developers</a><br>
-                4. Obtenha as permissoes: <code>instagram_basic</code>, <code>instagram_content_publish</code>, <code>pages_read_engagement</code><br>
+                1. Converta sua conta para <a href="https://help.instagram.com/502981923235522" target="_blank">Conta Profissional</a> (Comercial ou Criador de Conteudo)<br>
+                2. Acesse <a href="https://developers.facebook.com/apps/" target="_blank">Meta for Developers</a> e crie um app<br>
+                3. Ative o produto "Instagram" no seu app<br>
+                4. Use o <strong>Business Login for Instagram</strong> para obter permissoes:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<code>instagram_business_basic</code> e <code>instagram_business_content_publish</code><br>
                 5. Gere um <strong>Access Token</strong> de longa duracao<br>
                 6. Obtenha seu <strong>Instagram Business Account ID</strong><br><br>
-                Cole os dados abaixo para ativar a publicacao automatica.
+                Cole os dados abaixo para ativar a publicacao automatica direto pelo Instagram.
             </div>
             <div class="settings-section">
                 <h4>🔗 Status da Conexao: <span class="status-dot disconnected" id="statusDot"></span> <span id="statusText" style="font-weight:400;font-size:0.82rem;color:var(--text-secondary);">Desconectado</span></h4>
@@ -467,7 +503,7 @@
                     <input type="text" id="igAccountId" placeholder="Ex: 17841400123456789">
                 </div>
                 <div class="form-group">
-                    <label>Access Token (Meta Graph API)</label>
+                    <label>Access Token (Instagram Graph API)</label>
                     <input type="password" id="igAccessToken" placeholder="Token de acesso longo...">
                 </div>
                 <div class="btn-group">
@@ -497,7 +533,7 @@
         </div>
     </div>
 
-    <div class="footer">Feito para <a href="https://www.instagram.com/ferreira.eletrotech" target="_blank">@ferreira.eletrotech</a> - Ferreira Solucoes | v2.0</div>
+    <div class="footer">Feito para <a href="https://www.instagram.com/ferreira.eletrotech" target="_blank">@ferreira.eletrotech</a> - Ferreira Solucoes | v2.1</div>
 </div>
 
 <!-- Modal: Schedule Post -->
@@ -506,22 +542,17 @@
         <button class="close-modal" onclick="closeScheduleModal()">&times;</button>
         <h2>📅 Agendar Postagem</h2>
         <div class="form-grid">
-            <div class="form-group">
-                <label>Data</label>
-                <input type="date" id="modalDate">
-            </div>
-            <div class="form-group">
-                <label>Hora</label>
-                <input type="time" id="modalTime" value="11:00">
-            </div>
+            <div class="form-group"><label>Data</label><input type="date" id="modalDate"></div>
+            <div class="form-group"><label>Hora</label><input type="time" id="modalTime" value="11:00"></div>
         </div>
         <div class="form-group">
             <label>URL da Imagem (obrigatoria para publicacao automatica)</label>
             <input type="url" id="modalImage" placeholder="https://sua-imagem.com/post.jpg">
         </div>
         <div class="form-group">
-            <label>Legenda (preenchida automaticamente)</label>
-            <textarea id="modalCaption" style="min-height:120px;"></textarea>
+            <label>Legenda</label>
+            <textarea id="modalCaption" style="min-height:120px;" oninput="updateModalCharCounter()"></textarea>
+            <div class="char-counter" id="modalCharCounter">0 / 2.200 caracteres</div>
         </div>
         <div class="form-group">
             <label>Hashtags</label>
@@ -573,66 +604,92 @@ const HOOKS = {
         "Erro GRAVE que 90% das pessoas cometem com {tema}",
         "Se voce tem {tema} em casa, PRECISA ver isso!",
         "A verdade sobre {tema} que ninguem te conta",
-        "Pare tudo e veja isso sobre {tema}!"
+        "Pare tudo e veja isso sobre {tema}!",
+        "Nao faca isso NUNCA quando o assunto eh {tema}!",
+        "O que voce NAO sabe sobre {tema} pode te prejudicar",
+        "5 sinais de que voce precisa de ajuda com {tema}"
     ],
     dica: [
         "DICA DE OURO: {tema}",
         "Salva esse post! Dica rapida sobre {tema}",
         "Em 30 segundos voce vai aprender sobre {tema}",
         "Anota essa dica sobre {tema}!",
-        "Uma dica simples que vai mudar sua vida: {tema}"
+        "Uma dica simples que vai mudar sua vida: {tema}",
+        "TOP 3 dicas sobre {tema} que voce precisa saber",
+        "Essa dica sobre {tema} vale ouro!",
+        "Se eu soubesse disso antes sobre {tema}..."
     ],
     bastidores: [
         "Olha so o que encontramos hoje no servico...",
         "Dia a dia na vida de um profissional de {tema}",
         "Mais um dia, mais um trabalho perfeito!",
         "Bastidores de como fazemos {tema}",
-        "Acompanhe essa transformacao completa!"
+        "Acompanhe essa transformacao completa!",
+        "Um dia normal aqui na oficina: {tema}",
+        "Rotina de trabalho: {tema} na pratica",
+        "Voce nao imagina o que a gente encontra por ai..."
     ],
     antes_depois: [
         "ANTES e DEPOIS impressionante de {tema}",
         "Voce nao vai acreditar na diferenca! {tema}",
         "Transformacao completa: {tema}",
         "De um desastre a perfeicao: {tema}",
-        "O resultado ficou incrivel! Confira: {tema}"
+        "O resultado ficou incrivel! Confira: {tema}",
+        "Olha a diferenca que um profissional faz: {tema}",
+        "Arraste para o lado e veja a transformacao!"
     ],
     promocional: [
         "OFERTA ESPECIAL em {tema}! So essa semana.",
         "Quer resolver {tema}? A Ferreira Solucoes tem a resposta!",
         "Servico profissional de {tema} com garantia.",
         "Chame agora no WhatsApp e faca seu orcamento de {tema}!",
-        "Nao deixe para depois! {tema} com preco justo."
+        "Nao deixe para depois! {tema} com preco justo.",
+        "Condicoes imperdíveis para {tema}!",
+        "Promocao relampago: {tema} com desconto especial",
+        "Orcamento gratis! Aproveite: {tema}"
     ],
     depoimento: [
         "Mais um cliente satisfeito! Veja o que disseram sobre {tema}:",
         "A opiniao dos nossos clientes eh o que mais importa.",
         "Confianca se constroi com resultado. Olha esse feedback!",
-        "Cliente feliz = trabalho bem feito!"
+        "Cliente feliz = trabalho bem feito!",
+        "Nada melhor do que ver o sorriso do cliente!",
+        "O melhor pagamento eh a satisfacao do cliente"
     ],
     curiosidade: [
         "Voce sabia? {tema} - um fato que vai te surpreender!",
         "CURIOSIDADE: Por que {tema}?",
         "Isso pode te impressionar: {tema}",
-        "Fato curioso sobre {tema} que pouca gente sabe"
+        "Fato curioso sobre {tema} que pouca gente sabe",
+        "99% das pessoas nao sabem isso sobre {tema}",
+        "Mito ou verdade: {tema}?"
     ],
     tendencia: [
         "TENDENCIA {ano}: {tema} esta mudando tudo!",
         "O futuro ja chegou: {tema}",
         "Essa novidade em {tema} vai revolucionar o mercado!",
-        "As principais tendencias em {tema} para esse ano"
+        "As principais tendencias em {tema} para esse ano",
+        "O que vem por ai: {tema} em {ano}",
+        "A tecnologia que vai dominar: {tema}"
     ],
     humor: [
         "POV: voce chama um tecnico e descobre {tema}",
         "Profissional vs. Cliente: a eterna batalha de {tema}",
         "Quando o cliente diz que 'ja tentou resolver sozinho' {tema}",
-        "Coisas que so tecnico entende: {tema}"
+        "Coisas que so tecnico entende: {tema}",
+        "Ninguem: ... | Eu chegando no servico: {tema}",
+        "O cliente: 'eh coisa simples' | O servico: {tema}",
+        "Se tecnico tivesse 1 real pra cada vez que..."
     ],
     motivacional: [
         "Cada projeto realizado eh um sonho concretizado.",
         "Profissionalismo nao eh opcao, eh obrigacao.",
         "A excelencia nao eh um ato, eh um habito.",
         "Seguranca em primeiro lugar, sempre!",
-        "Transformando desafios em solucoes brilhantes."
+        "Transformando desafios em solucoes brilhantes.",
+        "O sucesso vem do trabalho bem feito, dia apos dia.",
+        "Nao existe atalho para a qualidade.",
+        "Compromisso com o cliente acima de tudo."
     ]
 };
 
@@ -646,7 +703,12 @@ const CTAS = [
     "Deixe um comentario! Qual sua duvida?",
     "Siga @ferreira.eletrotech para mais dicas!",
     "Ja teve algum problema assim? Conta aqui!",
-    "Compartilhe com quem esta construindo ou reformando!"
+    "Compartilhe com quem esta construindo ou reformando!",
+    "Envie para aquele amigo que precisa ver!",
+    "Curta se voce concorda! Comente se tem duvida!",
+    "Manda no grupo da familia!",
+    "Salva + compartilha = ajuda mais gente!",
+    "Me siga para conteudo diario sobre eletrica e tecnologia!"
 ];
 
 const EMOJIS = {
@@ -678,22 +740,22 @@ const SERVICE_NAMES = {
 };
 
 const TOPICS_BY_SERVICE = {
-    geral: ["instalacao eletrica", "seguranca eletrica", "economia de energia", "manutencao preventiva", "montagem de computadores", "manutencao de PCs"],
-    instalacao_eletrica: ["troca de fiacao", "instalacao de tomadas", "circuitos dedicados", "disjuntores", "fiacao antiga"],
-    manutencao: ["revisao do quadro eletrico", "teste de aterramento", "inspecao de fios", "manutencao preventiva", "laudo eletrico"],
-    iluminacao: ["fita LED", "spot de embutir", "iluminacao de destaque", "luminaria inteligente", "projeto luminotecnico"],
-    quadro_eletrico: ["organizacao do quadro", "troca de disjuntores", "DPS", "dimensionamento correto", "quadro de distribuicao"],
-    cabeamento: ["rede estruturada", "cabeamento Cat6", "rack", "infraestrutura de TI", "pontos de rede"],
-    energia_solar: ["paineis fotovoltaicos", "economia na conta de luz", "payback", "instalacao de placas", "inversor solar"],
-    automacao: ["interruptores inteligentes", "assistentes de voz", "cenarios automatizados", "cortinas automaticas", "tomadas WiFi"],
-    cameras: ["cameras IP", "DVR/NVR", "monitoramento remoto", "camera com IA", "cerca eletronica"],
-    ar_condicionado: ["instalacao de split", "manutencao de ar", "BTU correto", "eficiencia energetica", "limpeza de filtro"],
-    aterramento: ["malha de aterramento", "para-raio", "SPDA", "protecao contra surtos", "DPS"],
-    montagem_pc: ["montagem de PC gamer", "escolha do processador ideal", "placa de video", "memoria RAM", "SSD vs HDD", "fonte de alimentacao", "gabinete com airflow", "cooler e refrigeracao", "setup completo", "PC para trabalho e estudo"],
-    manutencao_pc: ["limpeza interna do PC", "troca de pasta termica", "upgrade de hardware", "PC lento e travando", "troca de HD para SSD", "diagnostico de problemas", "superaquecimento", "fonte queimada", "memoria com defeito", "backup de dados"],
-    redes: ["instalacao de roteador", "rede Wi-Fi mesh", "cabeamento de rede", "configuracao de switch", "rede empresarial", "repetidor de sinal", "Wi-Fi lento", "seguranca de rede"],
-    formatacao: ["formatacao Windows", "instalacao de drivers", "remocao de virus", "backup antes de formatar", "programas essenciais", "licenca do Windows", "otimizacao do sistema"],
-    notebook: ["troca de tela de notebook", "teclado de notebook", "bateria de notebook", "upgrade de RAM no notebook", "limpeza de notebook", "escolha de perifericos", "monitor externo", "dock station"]
+    geral: ["instalacao eletrica", "seguranca eletrica", "economia de energia", "manutencao preventiva", "montagem de computadores", "manutencao de PCs", "redes Wi-Fi"],
+    instalacao_eletrica: ["troca de fiacao", "instalacao de tomadas", "circuitos dedicados", "disjuntores", "fiacao antiga", "ponto de energia novo", "tomada de 3 pinos", "instalacao embutida vs. aparente"],
+    manutencao: ["revisao do quadro eletrico", "teste de aterramento", "inspecao de fios", "manutencao preventiva", "laudo eletrico", "troca de disjuntor queimado", "curto-circuito"],
+    iluminacao: ["fita LED", "spot de embutir", "iluminacao de destaque", "luminaria inteligente", "projeto luminotecnico", "lampada quente vs. fria", "sensor de presenca"],
+    quadro_eletrico: ["organizacao do quadro", "troca de disjuntores", "DPS", "dimensionamento correto", "quadro de distribuicao", "identificacao de circuitos"],
+    cabeamento: ["rede estruturada", "cabeamento Cat6", "rack", "infraestrutura de TI", "pontos de rede", "passagem de cabos", "certificacao de rede"],
+    energia_solar: ["paineis fotovoltaicos", "economia na conta de luz", "payback", "instalacao de placas", "inversor solar", "energia solar residencial", "energia solar para empresas"],
+    automacao: ["interruptores inteligentes", "assistentes de voz", "cenarios automatizados", "cortinas automaticas", "tomadas WiFi", "lampadas inteligentes", "fechadura digital"],
+    cameras: ["cameras IP", "DVR/NVR", "monitoramento remoto", "camera com IA", "cerca eletronica", "alarme residencial", "camera para comercio"],
+    ar_condicionado: ["instalacao de split", "manutencao de ar", "BTU correto", "eficiencia energetica", "limpeza de filtro", "ar condicionado inverter", "economia com ar condicionado"],
+    aterramento: ["malha de aterramento", "para-raio", "SPDA", "protecao contra surtos", "DPS", "aterramento TT", "norma NBR 5419"],
+    montagem_pc: ["montagem de PC gamer", "escolha do processador ideal", "placa de video", "memoria RAM", "SSD vs HDD", "fonte de alimentacao", "gabinete com airflow", "cooler e refrigeracao", "setup completo", "PC para trabalho e estudo", "PC custo-beneficio", "RGB e estetica"],
+    manutencao_pc: ["limpeza interna do PC", "troca de pasta termica", "upgrade de hardware", "PC lento e travando", "troca de HD para SSD", "diagnostico de problemas", "superaquecimento", "fonte queimada", "memoria com defeito", "backup de dados", "tela azul (BSOD)", "barulho no computador"],
+    redes: ["instalacao de roteador", "rede Wi-Fi mesh", "cabeamento de rede", "configuracao de switch", "rede empresarial", "repetidor de sinal", "Wi-Fi lento", "seguranca de rede", "IP fixo vs. DHCP", "rede para home office"],
+    formatacao: ["formatacao Windows", "instalacao de drivers", "remocao de virus", "backup antes de formatar", "programas essenciais", "licenca do Windows", "otimizacao do sistema", "Linux vs Windows", "recuperacao de dados"],
+    notebook: ["troca de tela de notebook", "teclado de notebook", "bateria de notebook", "upgrade de RAM no notebook", "limpeza de notebook", "escolha de perifericos", "monitor externo", "dock station", "SSD no notebook", "notebook para trabalho"]
 };
 
 const QUICK_TEMPLATES = [
@@ -703,10 +765,10 @@ const QUICK_TEMPLATES = [
     { emoji: "✨", name: "Antes e Depois", desc: "Transformacoes", category: "antes_depois", type: "carrossel", tone: "profissional" },
     { emoji: "💰", name: "Promocao", desc: "Oferta de servico", category: "promocional", type: "feed", tone: "urgente" },
     { emoji: "⭐", name: "Depoimento", desc: "Cliente satisfeito", category: "depoimento", type: "stories", tone: "informal" },
-    { emoji: "🧠", name: "Voce Sabia?", desc: "Curiosidade eletrica", category: "curiosidade", type: "reels", tone: "educativo" },
+    { emoji: "🧠", name: "Voce Sabia?", desc: "Curiosidade", category: "curiosidade", type: "reels", tone: "educativo" },
     { emoji: "🚀", name: "Tendencia", desc: "Novidades do setor", category: "tendencia", type: "carrossel", tone: "profissional" },
     { emoji: "😂", name: "Meme Tecnico", desc: "Humor do dia", category: "humor", type: "reels", tone: "humoristico" },
-    { emoji: "💪", name: "Motivacional", desc: "Inspiracao profissional", category: "motivacional", type: "feed", tone: "motivacional" },
+    { emoji: "💪", name: "Motivacional", desc: "Inspiracao", category: "motivacional", type: "feed", tone: "motivacional" },
     { emoji: "☀️", name: "Energia Solar", desc: "Posts sobre solar", category: "educacional", type: "carrossel", tone: "educativo", service: "energia_solar" },
     { emoji: "🏠", name: "Casa Inteligente", desc: "Automacao", category: "dica", type: "reels", tone: "informal", service: "automacao" },
     { emoji: "🖥️", name: "Montagem PC", desc: "PCs e hardware", category: "educacional", type: "carrossel", tone: "educativo", service: "montagem_pc" },
@@ -748,6 +810,79 @@ function copyText(text, btn) {
     });
 }
 function escapeHtml(text) { return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// =========================================================
+// THEME
+// =========================================================
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+function loadTheme() {
+    const saved = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('themeBtn').textContent = saved === 'dark' ? '☀️' : '🌙';
+}
+
+// =========================================================
+// TOPIC SUGGESTIONS
+// =========================================================
+
+function updateTopicSuggestions() {
+    const service = document.getElementById('service').value;
+    const topics = TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral;
+    const select = document.getElementById('topicSelect');
+    const chips = document.getElementById('topicChips');
+
+    select.innerHTML = '<option value="">Aleatorio (escolha automatica)</option>';
+    topics.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+        select.appendChild(opt);
+    });
+    select.innerHTML += '<option value="__custom__">Digitar tema personalizado...</option>';
+
+    chips.innerHTML = topics.slice(0, 8).map(t =>
+        `<span class="topic-chip" onclick="selectTopicChip(this, '${t.replace(/'/g,"\\'")}')">${t}</span>`
+    ).join('');
+
+    document.getElementById('topicCustom').style.display = 'none';
+    document.getElementById('topicCustom').value = '';
+}
+
+function selectTopicChip(el, topic) {
+    document.querySelectorAll('.topic-chip').forEach(c => c.style.background = '');
+    el.style.background = 'var(--primary-light)';
+    el.style.borderColor = 'var(--primary)';
+    el.style.color = 'var(--primary)';
+    document.getElementById('topicSelect').value = topic;
+    document.getElementById('topicCustom').style.display = 'none';
+}
+
+function onTopicSelectChange() {
+    const val = document.getElementById('topicSelect').value;
+    const customInput = document.getElementById('topicCustom');
+    if (val === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+    }
+    document.querySelectorAll('.topic-chip').forEach(c => {
+        c.style.background = '';
+        c.style.borderColor = '';
+        c.style.color = '';
+    });
+}
+
+function getSelectedTopic() {
+    const selectVal = document.getElementById('topicSelect').value;
+    if (selectVal === '__custom__') return document.getElementById('topicCustom').value;
+    return selectVal;
+}
 
 // =========================================================
 // PROMPT GENERATION ENGINE
@@ -877,7 +1012,7 @@ function generatePrompts() {
     const category = getSelectedChip('category');
     const tone = document.getElementById('tone').value;
     const service = document.getElementById('service').value;
-    const topic = document.getElementById('topic').value;
+    const topic = getSelectedTopic();
     const audience = document.getElementById('audience').value;
     document.getElementById('loading').classList.add('visible');
     document.getElementById('results').classList.remove('visible');
@@ -897,6 +1032,9 @@ function displayResults(caption, altCaption, hashtags, imagePrompt, postType, ca
     const typeLabels = { feed:"Feed", reels:"Reels", carrossel:"Carrossel", stories:"Stories" };
     const catLabels = { educacional:"Educacional", dica:"Dica Rapida", bastidores:"Bastidores", antes_depois:"Antes e Depois", promocional:"Promocional", depoimento:"Depoimento", curiosidade:"Curiosidade", tendencia:"Tendencia", humor:"Humor/Meme", motivacional:"Motivacional" };
     const hashStr = hashtags.join(' ');
+    const emoji = EMOJIS[service] || "⚡";
+    const captionLen = caption.length;
+    const charClass = captionLen > 2200 ? 'danger' : captionLen > 2000 ? 'warning' : '';
 
     resultsDiv.innerHTML = `
         <div style="text-align:center;margin-bottom:1rem;">
@@ -904,31 +1042,48 @@ function displayResults(caption, altCaption, hashtags, imagePrompt, postType, ca
                 ${typeLabels[postType]||postType} | ${catLabels[category]||category}
             </span>
         </div>
-        <div class="result-block">
-            <div class="result-header"><h3>📝 Legenda Principal</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-            <div class="result-content">${escapeHtml(caption)}</div>
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start;" id="resultsGrid">
+            <div>
+                <div class="result-block">
+                    <div class="result-header"><h3>📝 Legenda Principal</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
+                    <div class="result-content">${escapeHtml(caption)}</div>
+                    <div class="char-counter ${charClass}" style="padding:0 1.25rem 0.75rem;">${captionLen} / 2.200 caracteres</div>
+                </div>
+                <div class="result-block">
+                    <div class="result-header"><h3>🔄 Legenda Alternativa</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
+                    <div class="result-content">${escapeHtml(altCaption)}</div>
+                </div>
+                <div class="result-block">
+                    <div class="result-header"><h3>#️⃣ Hashtags Sugeridas</h3><button class="copy-btn" onclick="copyText('${hashStr.replace(/'/g,"\\'")}',this)">Copiar Todas</button></div>
+                    <div class="hashtag-list">${hashtags.map(h=>`<span class="hashtag">${h}</span>`).join('')}</div>
+                    <div class="counter">${hashtags.length} hashtags</div>
+                </div>
+                <div class="result-block">
+                    <div class="result-header"><h3>🎨 Prompt para Imagem (IA)</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
+                    <div class="result-content">${escapeHtml(imagePrompt)}</div>
+                </div>
+            </div>
+            <div>
+                <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;color:var(--text-secondary);text-align:center;">Preview do Post</div>
+                <div class="preview-phone">
+                    <div class="preview-header">
+                        <div class="preview-avatar">FS</div>
+                        <div class="preview-username">ferreira.eletrotech</div>
+                    </div>
+                    <div class="preview-image">${emoji}</div>
+                    <div class="preview-caption">${escapeHtml(caption.split('\n---')[0].substring(0, 300))}${caption.length > 300 ? '...' : ''}</div>
+                    <div class="preview-hashtags">${hashStr}</div>
+                </div>
+            </div>
         </div>
-        <div class="result-block">
-            <div class="result-header"><h3>🔄 Legenda Alternativa</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-            <div class="result-content">${escapeHtml(altCaption)}</div>
-        </div>
-        <div class="result-block">
-            <div class="result-header"><h3>#️⃣ Hashtags Sugeridas</h3><button class="copy-btn" onclick="copyText('${hashStr.replace(/'/g,"\\'")}',this)">Copiar Todas</button></div>
-            <div class="hashtag-list">${hashtags.map(h=>`<span class="hashtag">${h}</span>`).join('')}</div>
-            <div class="counter">${hashtags.length} hashtags</div>
-        </div>
-        <div class="result-block">
-            <div class="result-header"><h3>🎨 Prompt para Imagem (IA)</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-            <div class="result-content">${escapeHtml(imagePrompt)}</div>
-        </div>
+        <style>@media(max-width:800px){#resultsGrid{grid-template-columns:1fr!important;}}</style>
         <div class="btn-group" style="justify-content:center;margin-top:1.5rem;">
             <button class="btn btn-secondary" onclick="generatePrompts()">🔄 Gerar Novamente</button>
-            <button class="btn btn-primary" onclick="openScheduleModal(\`${caption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,\`${hashStr.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`)">📅 Agendar Post</button>
+            <button class="btn btn-primary" onclick="openScheduleModal(window._lastCaption,window._lastHashtags)">📅 Agendar Post</button>
             <button class="btn btn-success" onclick="exportAll()">📥 Exportar</button>
         </div>`;
     resultsDiv.classList.add('visible');
     resultsDiv.scrollIntoView({ behavior:'smooth', block:'start' });
-    // Store for export
     window._lastCaption = caption;
     window._lastHashtags = hashStr;
     window._lastImagePrompt = imagePrompt;
@@ -938,7 +1093,7 @@ function exportAll() {
     const c = window._lastCaption || '';
     const h = window._lastHashtags || '';
     const ip = window._lastImagePrompt || '';
-    const content = `FERREIRA ELETROTECH - PROMPT GERADO\n${'='.repeat(50)}\n\nLEGENDA:\n${c}\n\nHASHTAGS:\n${h}\n\nPROMPT PARA IMAGEM:\n${ip}\n\n${'='.repeat(50)}\nGerado por Ferreira Eletrotech Prompt Generator v2.0`;
+    const content = `FERREIRA ELETROTECH - PROMPT GERADO\n${'='.repeat(50)}\n\nLEGENDA:\n${c}\n\nHASHTAGS:\n${h}\n\nPROMPT PARA IMAGEM:\n${ip}\n\n${'='.repeat(50)}\nGerado por Ferreira Eletrotech Prompt Generator v2.1`;
     const blob = new Blob([content], { type:'text/plain;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -959,10 +1114,18 @@ function openScheduleModal(caption, hashtags) {
     now.setDate(now.getDate() + 1);
     document.getElementById('modalDate').value = now.toISOString().split('T')[0];
     document.getElementById('modalTime').value = '11:00';
+    updateModalCharCounter();
     document.getElementById('scheduleModal').classList.add('visible');
 }
 
 function closeScheduleModal() { document.getElementById('scheduleModal').classList.remove('visible'); }
+
+function updateModalCharCounter() {
+    const len = document.getElementById('modalCaption').value.length;
+    const counter = document.getElementById('modalCharCounter');
+    counter.textContent = `${len} / 2.200 caracteres`;
+    counter.className = 'char-counter' + (len > 2200 ? ' danger' : len > 2000 ? ' warning' : '');
+}
 
 function confirmSchedule() {
     const date = document.getElementById('modalDate').value;
@@ -971,13 +1134,10 @@ function confirmSchedule() {
     const image = document.getElementById('modalImage').value;
     const hashtags = document.getElementById('modalHashtags').value;
     if (!date || !time || !caption) { showToast('Preencha data, hora e legenda!'); return; }
-    const post = {
-        id: Date.now(),
-        date, time, caption, image, hashtags,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    };
-    scheduledPosts.push(post);
+    scheduledPosts.push({
+        id: Date.now(), date, time, caption, image, hashtags,
+        status: 'pending', createdAt: new Date().toISOString()
+    });
     saveSchedule();
     closeScheduleModal();
     showToast('Post agendado com sucesso!');
@@ -1016,23 +1176,19 @@ function renderSchedule() {
     const pending = scheduledPosts.filter(p => p.status === 'pending');
     const published = scheduledPosts.filter(p => p.status === 'published');
     const failed = scheduledPosts.filter(p => p.status === 'failed');
-
     document.getElementById('stat-total').textContent = scheduledPosts.length;
     document.getElementById('stat-pending').textContent = pending.length;
     document.getElementById('stat-published').textContent = published.length;
     document.getElementById('stat-failed').textContent = failed.length;
-
     if (scheduledPosts.length === 0) {
         list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum post agendado. Gere um prompt e clique em "Agendar Post"!</p>';
         return;
     }
-
     const sorted = [...scheduledPosts].sort((a, b) => {
         if (a.status === 'pending' && b.status !== 'pending') return -1;
         if (a.status !== 'pending' && b.status === 'pending') return 1;
         return new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time);
     });
-
     list.innerHTML = sorted.map(post => {
         const badgeClass = post.status === 'published' ? 'badge-published' : post.status === 'failed' ? 'badge-failed' : post.status === 'publishing' ? 'badge-pending' : 'badge-pending';
         const badgeText = post.status === 'published' ? 'Publicado' : post.status === 'failed' ? 'Falhou' : post.status === 'publishing' ? 'Publicando...' : 'Pendente';
@@ -1077,6 +1233,8 @@ async function publishSinglePost(id) {
     const post = scheduledPosts.find(p => p.id === id);
     if (!post || post.status === 'publishing') return;
     if (!post.image) { showToast('Post sem URL de imagem. Adicione uma imagem para publicar.'); return; }
+    post.status = 'publishing';
+    saveSchedule();
     const fullCaption = post.caption + '\n\n' + post.hashtags;
     const success = await publishToInstagram(post.image, fullCaption);
     post.status = success ? 'published' : 'failed';
@@ -1093,40 +1251,27 @@ async function publishToInstagram(imageUrl, caption) {
         return false;
     }
     try {
-        // Step 1: Create media container
         const createRes = await fetch(`https://graph.instagram.com/v21.0/${accountId}/media`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                image_url: imageUrl,
-                caption: caption,
-                access_token: token
-            })
+            body: JSON.stringify({ image_url: imageUrl, caption: caption, access_token: token })
         });
         const createData = await createRes.json();
-        if (createData.error) { console.error('IG Create Error:', createData.error); showToast('Erro: ' + (createData.error.message || 'Falha ao criar midia')); return false; }
-        const creationId = createData.id;
-
-        // Step 2: Publish the container
+        if (createData.error) { showToast('Erro: ' + (createData.error.message || 'Falha ao criar midia')); return false; }
         const publishRes = await fetch(`https://graph.instagram.com/v21.0/${accountId}/media_publish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                creation_id: creationId,
-                access_token: token
-            })
+            body: JSON.stringify({ creation_id: createData.id, access_token: token })
         });
         const publishData = await publishRes.json();
-        if (publishData.error) { console.error('IG Publish Error:', publishData.error); showToast('Erro: ' + (publishData.error.message || 'Falha ao publicar')); return false; }
+        if (publishData.error) { showToast('Erro: ' + (publishData.error.message || 'Falha ao publicar')); return false; }
         return true;
     } catch (err) {
-        console.error('Publish error:', err);
         showToast('Erro de conexao. Tente novamente.');
         return false;
     }
 }
 
-// Auto-publish checker (runs every minute)
 let isPublishing = false;
 async function checkScheduledPosts() {
     if (isPublishing) return;
@@ -1134,10 +1279,8 @@ async function checkScheduledPosts() {
     const accountId = localStorage.getItem('ig_account_id');
     const token = localStorage.getItem('ig_access_token');
     if (!accountId || !token) return;
-
     const pendingPosts = scheduledPosts.filter(p => p.status === 'pending');
     if (pendingPosts.length === 0) return;
-
     isPublishing = true;
     try {
         for (const post of pendingPosts) {
@@ -1158,7 +1301,7 @@ async function checkScheduledPosts() {
 setInterval(checkScheduledPosts, 60000);
 
 // =========================================================
-// SETTINGS & INSTAGRAM CONNECTION
+// SETTINGS
 // =========================================================
 
 function saveSettings() {
@@ -1187,29 +1330,14 @@ async function testConnection() {
     try {
         const res = await fetch(`https://graph.instagram.com/v21.0/${accountId}?fields=name,username,profile_picture_url&access_token=${token}`);
         const data = await res.json();
-        if (data.error) {
-            showToast('Erro: ' + (data.error.message || 'Token invalido'));
-            updateConnectionStatus(false);
-        } else {
-            showToast(`Conectado como @${data.username || data.name}!`);
-            updateConnectionStatus(true);
-        }
-    } catch (err) {
-        showToast('Erro de conexao.');
-        updateConnectionStatus(false);
-    }
+        if (data.error) { showToast('Erro: ' + (data.error.message || 'Token invalido')); updateConnectionStatus(false); }
+        else { showToast(`Conectado como @${data.username || data.name}!`); updateConnectionStatus(true); }
+    } catch (err) { showToast('Erro de conexao.'); updateConnectionStatus(false); }
 }
 
 function updateConnectionStatus(connected) {
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    if (connected) {
-        dot.className = 'status-dot connected';
-        text.textContent = 'Conectado';
-    } else {
-        dot.className = 'status-dot disconnected';
-        text.textContent = 'Desconectado';
-    }
+    document.getElementById('statusDot').className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+    document.getElementById('statusText').textContent = connected ? 'Conectado' : 'Desconectado';
 }
 
 function loadSettings() {
@@ -1243,11 +1371,13 @@ function renderHistory() {
         return;
     }
     const catLabels = { educacional:"Educacional", dica:"Dica", bastidores:"Bastidores", antes_depois:"A&D", promocional:"Promo", depoimento:"Depoimento", curiosidade:"Curiosidade", tendencia:"Tendencia", humor:"Humor", motivacional:"Motivacional" };
-    list.innerHTML = history.slice(0,20).map((item, i) => `
-        <div class="history-item" onclick="copyText(\`${item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,null)">
+    list.innerHTML = history.slice(0,20).map((item) => {
+        const safeCaption = item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`');
+        return `<div class="history-item" onclick="copyText(\`${safeCaption}\`,null)">
             <div><div class="title">${catLabels[item.category]||item.category} - ${item.postType}</div><div class="meta">${item.date}</div></div>
-            <button class="copy-btn" onclick="event.stopPropagation();copyText(\`${item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,this)">Copiar</button>
-        </div>`).join('');
+            <button class="copy-btn" onclick="event.stopPropagation();copyText(\`${safeCaption}\`,this)">Copiar</button>
+        </div>`;
+    }).join('');
 }
 
 // =========================================================
@@ -1266,7 +1396,7 @@ function generateCalendar() {
         const topic = randomItem(topics);
         const hooks = HOOKS[info.cat] || HOOKS.educacional;
         const hook = randomItem(hooks).replace("{tema}", topic).replace("{ano}", new Date().getFullYear());
-        html += `<div style="background:white;border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;gap:1rem;align-items:flex-start;">
+        html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;gap:1rem;align-items:flex-start;">
             <div style="font-size:1.5rem;">${info.emoji}</div>
             <div style="flex:1;"><div style="font-weight:700;font-size:0.9rem;color:var(--primary);">${dayNames[day]}</div>
             <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.3rem;">${info.tema}</div>
@@ -1278,7 +1408,7 @@ function generateCalendar() {
 }
 
 // =========================================================
-// TAB SWITCHING & INITIALIZATION
+// INITIALIZATION
 // =========================================================
 
 function switchTab(tabName) {
@@ -1292,7 +1422,6 @@ function switchTab(tabName) {
     if (tabName === 'settings') loadSettings();
 }
 
-// Chip selection
 document.querySelectorAll('.chip-group').forEach(group => {
     group.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', () => {
@@ -1302,12 +1431,10 @@ document.querySelectorAll('.chip-group').forEach(group => {
     });
 });
 
-// Tab switching
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
 });
 
-// Render quick templates
 const grid = document.getElementById('templatesGrid');
 QUICK_TEMPLATES.forEach(tpl => {
     const card = document.createElement('div');
@@ -1315,22 +1442,20 @@ QUICK_TEMPLATES.forEach(tpl => {
     card.innerHTML = `<div class="emoji">${tpl.emoji}</div><div class="name">${tpl.name}</div><div class="desc">${tpl.desc}</div>`;
     card.addEventListener('click', () => {
         switchTab('generator');
-        const typeGroup = document.getElementById('postType');
-        typeGroup.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.type));
-        const catGroup = document.getElementById('category');
-        catGroup.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.category));
+        document.getElementById('postType').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.type));
+        document.getElementById('category').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.category));
         document.getElementById('tone').value = tpl.tone;
-        if (tpl.service) document.getElementById('service').value = tpl.service;
+        if (tpl.service) { document.getElementById('service').value = tpl.service; updateTopicSuggestions(); }
         setTimeout(() => generatePrompts(), 200);
     });
     grid.appendChild(card);
 });
 
-// Init
+loadTheme();
 renderHistory();
 renderSchedule();
+updateTopicSuggestions();
 
-// Set default schedule date
 const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 const dateInput = document.getElementById('scheduleDate');
