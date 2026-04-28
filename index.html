@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Prompts - Ferreira Eletrotech</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --primary-light: #e8f0fe;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --gradient: linear-gradient(135deg, #1a73e8, #6366f1);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            position: relative;
+        }
+        .header .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.15);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: var(--shadow-md); }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+        }
+        .card-title .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-secondary);
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: var(--bg);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+        .form-group { margin-bottom: 0.75rem; }
+
+        /* Chip Select */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+        .chip {
+            padding: 0.45rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            user-select: none;
+        }
+        .chip:hover { border-color: var(--primary); color: var(--primary); }
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 14px rgba(26, 115, 232, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.5);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover { background: #059669; }
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .generate-section { text-align: center; margin: 1.5rem 0; }
+
+        /* Results */
+        .result-area {
+            display: none;
+        }
+        .result-area.visible { display: block; }
+        .result-block {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .result-header {
+            background: var(--bg);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .result-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .result-content {
+            padding: 1.25rem;
+            white-space: pre-wrap;
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+        .copy-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .copy-btn.copied { background: var(--success); color: white; border-color: var(--success); }
+
+        /* Hashtags */
+        .hashtag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 1rem 1.25rem;
+        }
+        .hashtag {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1.25rem;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 0.7rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: var(--primary); }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* History */
+        .history-item {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-item:hover { background: var(--primary-light); border-color: var(--primary); }
+        .history-item .meta {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .history-item .title {
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.visible { display: block; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Counter */
+        .counter {
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-lg);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Quick Templates Grid */
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+        .template-card {
+            padding: 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        .template-card:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .template-card .emoji { font-size: 1.5rem; margin-bottom: 0.4rem; }
+        .template-card .name { font-size: 0.82rem; font-weight: 600; }
+        .template-card .desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        .footer a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Gerador de Prompts para Instagram</h1>
+    <p>Crie conteudo profissional para suas postagens automaticamente</p>
+    <div class="brand">⚡ @ferreira.eletrotech</div>
+</div>
+
+<div class="container">
+    <!-- Tabs -->
+    <div class="tabs" id="mainTabs">
+        <div class="tab active" data-tab="generator">Gerar Prompt</div>
+        <div class="tab" data-tab="templates">Templates Rapidos</div>
+        <div class="tab" data-tab="calendar">Calendario Semanal</div>
+        <div class="tab" data-tab="history">Historico</div>
+    </div>
+
+    <!-- TAB: Generator -->
+    <div id="tab-generator">
+        <!-- Tipo de Post -->
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #dbeafe; color: #2563eb;">📱</div>
+                Tipo de Postagem
+            </div>
+            <div class="chip-group" id="postType">
+                <div class="chip active" data-value="feed">Feed</div>
+                <div class="chip" data-value="reels">Reels</div>
+                <div class="chip" data-value="carrossel">Carrossel</div>
+                <div class="chip" data-value="stories">Stories</div>
+            </div>
+        </div>
+
+        <!-- Categoria -->
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #fef3c7; color: #d97706;">📂</div>
+                Categoria do Conteudo
+            </div>
+            <div class="chip-group" id="category">
+                <div class="chip active" data-value="educacional">Educacional</div>
+                <div class="chip" data-value="dica">Dica Rapida</div>
+                <div class="chip" data-value="bastidores">Bastidores</div>
+                <div class="chip" data-value="antes_depois">Antes e Depois</div>
+                <div class="chip" data-value="promocional">Promocional</div>
+                <div class="chip" data-value="depoimento">Depoimento</div>
+                <div class="chip" data-value="curiosidade">Curiosidade</div>
+                <div class="chip" data-value="tendencia">Tendencia</div>
+                <div class="chip" data-value="humor">Humor/Meme</div>
+                <div class="chip" data-value="motivacional">Motivacional</div>
+            </div>
+        </div>
+
+        <!-- Detalhes -->
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #d1fae5; color: #059669;">⚙️</div>
+                Detalhes da Postagem
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tom de Voz</label>
+                    <select id="tone">
+                        <option value="profissional">Profissional e Tecnico</option>
+                        <option value="informal" selected>Informal e Acessivel</option>
+                        <option value="motivacional">Motivacional</option>
+                        <option value="humoristico">Humoristico</option>
+                        <option value="educativo">Educativo e Didatico</option>
+                        <option value="urgente">Urgente / CTA forte</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Servico em Destaque</label>
+                    <select id="service">
+                        <option value="geral">Geral (todos os servicos)</option>
+                        <option value="instalacao_eletrica">Instalacao Eletrica</option>
+                        <option value="manutencao">Manutencao Preventiva</option>
+                        <option value="iluminacao">Iluminacao e LED</option>
+                        <option value="quadro_eletrico">Quadro Eletrico</option>
+                        <option value="cabeamento">Cabeamento Estruturado</option>
+                        <option value="energia_solar">Energia Solar</option>
+                        <option value="automacao">Automacao Residencial</option>
+                        <option value="cameras">Cameras e Seguranca</option>
+                        <option value="ar_condicionado">Ar Condicionado</option>
+                        <option value="aterramento">Aterramento e Para-raio</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Tema / Assunto Especifico (opcional)</label>
+                <input type="text" id="topic" placeholder="Ex: Como economizar energia no verao, Perigos de instalacao caseira...">
+            </div>
+            <div class="form-group">
+                <label>Publico-Alvo</label>
+                <select id="audience">
+                    <option value="residencial" selected>Clientes Residenciais</option>
+                    <option value="comercial">Clientes Comerciais/Empresas</option>
+                    <option value="condominio">Condominios</option>
+                    <option value="profissionais">Outros Profissionais da Area</option>
+                    <option value="geral">Publico Geral</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="generate-section">
+            <button class="btn btn-primary" onclick="generatePrompts()" id="generateBtn">
+                ⚡ Gerar Prompts Automaticamente
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Gerando prompts personalizados...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="result-area" id="results"></div>
+    </div>
+
+    <!-- TAB: Quick Templates -->
+    <div id="tab-templates" style="display:none">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #ede9fe; color: #7c3aed;">⚡</div>
+                Templates Prontos - Clique para Gerar
+            </div>
+            <div class="templates-grid" id="templatesGrid"></div>
+        </div>
+    </div>
+
+    <!-- TAB: Calendar -->
+    <div id="tab-calendar" style="display:none">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #fce7f3; color: #db2777;">📅</div>
+                Calendario Semanal de Conteudo
+            </div>
+            <p style="font-size:0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Sugestao de postagens para cada dia da semana, otimizado para engajamento.
+            </p>
+            <button class="btn btn-primary" onclick="generateCalendar()">📅 Gerar Calendario Semanal</button>
+            <div id="calendarResult" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- TAB: History -->
+    <div id="tab-history" style="display:none">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background: #f0fdf4; color: #16a34a;">📋</div>
+                Historico de Prompts Gerados
+            </div>
+            <div id="historyList">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; padding: 2rem;">
+                    Nenhum prompt gerado ainda. Comece gerando seu primeiro prompt!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Feito para <a href="https://www.instagram.com/ferreira.eletrotech" target="_blank">@ferreira.eletrotech</a> - Ferreira Solucoes
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================
+// DATA & CONFIGURATION
+// ==============================
+
+const BRAND = {
+    name: "Ferreira Solucoes",
+    handle: "@ferreira.eletrotech",
+    nicho: "Eletrotecnica, Solucoes Eletricas e Tecnologia",
+    slogan: "Solucoes eletricas com seguranca e qualidade"
+};
+
+const HASHTAGS = {
+    gerais: ["#eletricista", "#eletrotecnica", "#eletrica", "#instalacaoeletrica", "#ferreiraeletrotech", "#ferreirasoluções", "#servicoseletricos", "#eletricidade", "#eletricidaderesidencial", "#profissionaleletricista"],
+    instalacao: ["#instalacaoeletrica", "#fiacao", "#tomadas", "#interruptores", "#quadrodedistribuicao", "#drywall", "#reformaeletrica"],
+    manutencao: ["#manutencaoeletrica", "#manutencaopreventiva", "#segurancaeletrica", "#laudo", "#nr10", "#vistoriaeletrica"],
+    iluminacao: ["#iluminacao", "#led", "#luminotecnica", "#iluminacaoresidencial", "#projetoluminotecnico", "#fitaled", "#spotled"],
+    energia_solar: ["#energiasolar", "#painelsolar", "#sustentabilidade", "#energialimpa", "#fotovoltaica", "#economiaenergia"],
+    automacao: ["#automacaoresidencial", "#casainteligente", "#smarthome", "#domotica", "#alexa", "#googlehome"],
+    cameras: ["#cftv", "#cameras", "#segurancaeletronica", "#monitoramento", "#vigilancia"],
+    engajamento: ["#dicasdeeletrica", "#vocesabia", "#eletricistaprofissional", "#obrasresidenciais", "#construcao", "#reforma", "#arquitetura"]
+};
+
+const HOOKS = {
+    educacional: [
+        "Voce sabia que {tema} pode ser perigoso se feito de forma errada?",
+        "Muita gente nao sabe, mas {tema} eh essencial para sua seguranca.",
+        "3 coisas que todo mundo deveria saber sobre {tema}:",
+        "Erro GRAVE que 90% das pessoas cometem com {tema}",
+        "Se voce tem {tema} em casa, PRECISA ver isso!",
+        "A verdade sobre {tema} que ninguem te conta",
+        "Pare tudo e veja isso sobre {tema}!"
+    ],
+    dica: [
+        "DICA DE OURO: {tema}",
+        "Salva esse post! Dica rapida sobre {tema}",
+        "Em 30 segundos voce vai aprender sobre {tema}",
+        "Anota essa dica sobre {tema}!",
+        "Uma dica simples que vai mudar sua vida: {tema}"
+    ],
+    bastidores: [
+        "Olha so o que encontramos hoje no servico...",
+        "Dia a dia na vida de um eletrotecnico profissional",
+        "Mais um dia, mais uma instalacao perfeita!",
+        "Bastidores de como fazemos {tema}",
+        "Acompanhe essa transformacao completa!"
+    ],
+    antes_depois: [
+        "ANTES e DEPOIS impressionante de {tema}",
+        "Voce nao vai acreditar na diferenca! {tema}",
+        "Transformacao completa: {tema}",
+        "De um desastre a perfeicao: {tema}",
+        "O resultado ficou incrivel! Confira: {tema}"
+    ],
+    promocional: [
+        "OFERTA ESPECIAL em {tema}! So essa semana.",
+        "Quer resolver {tema}? A Ferreira Solucoes tem a resposta!",
+        "Servico profissional de {tema} com garantia.",
+        "Chame agora no WhatsApp e faca seu orcamento de {tema}!",
+        "Nao deixe para depois! {tema} com preco justo."
+    ],
+    depoimento: [
+        "Mais um cliente satisfeito! Veja o que disseram sobre {tema}:",
+        "A opiniao dos nossos clientes eh o que mais importa.",
+        "Confianca se constroi com resultado. Olha esse feedback!",
+        "Cliente feliz = trabalho bem feito!"
+    ],
+    curiosidade: [
+        "Voce sabia? {tema} - um fato que vai te surpreender!",
+        "CURIOSIDADE: Por que {tema}?",
+        "Isso pode te impressionar: {tema}",
+        "Fato curioso sobre {tema} que pouca gente sabe"
+    ],
+    tendencia: [
+        "TENDENCIA {ano}: {tema} esta mudando tudo!",
+        "O futuro da eletrica ja chegou: {tema}",
+        "Essa novidade em {tema} vai revolucionar o mercado!",
+        "As principais tendencias em {tema} para esse ano"
+    ],
+    humor: [
+        "POV: voce chama um eletricista e descobre {tema}",
+        "Eletricista vs. Cliente: a eterna batalha de {tema}",
+        "Quando o cliente diz que 'ja tentou resolver sozinho' {tema}",
+        "Coisas que so eletricista entende: {tema}"
+    ],
+    motivacional: [
+        "Cada fio conectado eh um sonho realizado.",
+        "Profissionalismo nao eh opcao, eh obrigacao.",
+        "A excelencia nao eh um ato, eh um habito.",
+        "Seguranca em primeiro lugar, sempre!",
+        "Transformando desafios eletricos em solucoes brilhantes."
+    ]
+};
+
+const CTAS = [
+    "Salve esse post para consultar depois!",
+    "Marque alguem que precisa ver isso!",
+    "Comente aqui sua duvida que eu respondo!",
+    "Curtiu? Compartilhe com quem precisa!",
+    "Precisa de ajuda? Chama no Direct ou WhatsApp!",
+    "Quer um orcamento? Link na bio!",
+    "Deixe um comentario! Qual sua duvida?",
+    "Siga @ferreira.eletrotech para mais dicas!",
+    "Ja teve algum problema assim? Conta aqui!",
+    "Compartilhe com quem esta construindo ou reformando!"
+];
+
+const EMOJIS = {
+    instalacao_eletrica: "🔌",
+    manutencao: "🔧",
+    iluminacao: "💡",
+    quadro_eletrico: "📦",
+    cabeamento: "🔗",
+    energia_solar: "☀️",
+    automacao: "🏠",
+    cameras: "📹",
+    ar_condicionado: "❄️",
+    aterramento: "⚡",
+    geral: "⚡"
+};
+
+const SERVICE_NAMES = {
+    geral: "solucoes eletricas",
+    instalacao_eletrica: "instalacao eletrica",
+    manutencao: "manutencao eletrica",
+    iluminacao: "iluminacao e LED",
+    quadro_eletrico: "quadro eletrico",
+    cabeamento: "cabeamento estruturado",
+    energia_solar: "energia solar",
+    automacao: "automacao residencial",
+    cameras: "cameras e seguranca",
+    ar_condicionado: "ar condicionado",
+    aterramento: "aterramento e para-raio"
+};
+
+const TOPICS_BY_SERVICE = {
+    geral: ["instalacao eletrica", "seguranca eletrica", "economia de energia", "manutencao preventiva", "projetos eletricos"],
+    instalacao_eletrica: ["troca de fiacao", "instalacao de tomadas", "circuitos dedicados", "disjuntores", "fiacao antiga"],
+    manutencao: ["revisao do quadro eletrico", "teste de aterramento", "inspecao de fios", "manutencao preventiva", "laudo eletrico"],
+    iluminacao: ["fita LED", "spot de embutir", "iluminacao de destaque", "luminaria inteligente", "projeto luminotecnico"],
+    quadro_eletrico: ["organizacao do quadro", "troca de disjuntores", "DPS", "dimensionamento correto", "quadro de distribuicao"],
+    cabeamento: ["rede estruturada", "cabeamento Cat6", "rack", "infraestrutura de TI", "pontos de rede"],
+    energia_solar: ["paineis fotovoltaicos", "economia na conta de luz", "payback", "instalacao de placas", "inversor solar"],
+    automacao: ["interruptores inteligentes", "assistentes de voz", "cenarios automatizados", "cortinas automaticas", "tomadas WiFi"],
+    cameras: ["cameras IP", "DVR/NVR", "monitoramento remoto", "camera com IA", "cerca eletronica"],
+    ar_condicionado: ["instalacao de split", "manutencao de ar", "BTU correto", "eficiencia energetica", "limpeza de filtro"],
+    aterramento: ["malha de aterramento", "para-raio", "SPDA", "protecao contra surtos", "DPS"]
+};
+
+const QUICK_TEMPLATES = [
+    { emoji: "💡", name: "Dica do Dia", desc: "Dica rapida e util", category: "dica", type: "feed", tone: "informal" },
+    { emoji: "⚠️", name: "Alerta Seguranca", desc: "Riscos eletricos", category: "educacional", type: "carrossel", tone: "urgente" },
+    { emoji: "🔧", name: "Bastidores", desc: "Dia a dia no trabalho", category: "bastidores", type: "reels", tone: "informal" },
+    { emoji: "✨", name: "Antes e Depois", desc: "Transformacoes", category: "antes_depois", type: "carrossel", tone: "profissional" },
+    { emoji: "💰", name: "Promocao", desc: "Oferta de servico", category: "promocional", type: "feed", tone: "urgente" },
+    { emoji: "⭐", name: "Depoimento", desc: "Cliente satisfeito", category: "depoimento", type: "stories", tone: "informal" },
+    { emoji: "🧠", name: "Voce Sabia?", desc: "Curiosidade eletrica", category: "curiosidade", type: "reels", tone: "educativo" },
+    { emoji: "🚀", name: "Tendencia", desc: "Novidades do setor", category: "tendencia", type: "carrossel", tone: "profissional" },
+    { emoji: "😂", name: "Meme Eletricista", desc: "Humor do dia", category: "humor", type: "reels", tone: "humoristico" },
+    { emoji: "💪", name: "Motivacional", desc: "Inspiracao profissional", category: "motivacional", type: "feed", tone: "motivacional" },
+    { emoji: "☀️", name: "Energia Solar", desc: "Posts sobre solar", category: "educacional", type: "carrossel", tone: "educativo", service: "energia_solar" },
+    { emoji: "🏠", name: "Casa Inteligente", desc: "Automacao residencial", category: "dica", type: "reels", tone: "informal", service: "automacao" }
+];
+
+const CALENDAR_THEMES = {
+    segunda: { tema: "Motivacional / Começo de semana", emoji: "💪", cat: "motivacional" },
+    terca: { tema: "Dica Tecnica / Educacional", emoji: "📚", cat: "educacional" },
+    quarta: { tema: "Bastidores / Dia a dia", emoji: "🔧", cat: "bastidores" },
+    quinta: { tema: "Curiosidade / Voce Sabia", emoji: "🧠", cat: "curiosidade" },
+    sexta: { tema: "Antes e Depois / Case", emoji: "✨", cat: "antes_depois" },
+    sabado: { tema: "Dica Rapida / Humor", emoji: "💡", cat: "dica" },
+    domingo: { tema: "Depoimento / Prova Social", emoji: "⭐", cat: "depoimento" }
+};
+
+// ==============================
+// UTILITY FUNCTIONS
+// ==============================
+
+function randomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomItems(arr, count) {
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+function getSelectedChip(groupId) {
+    const group = document.getElementById(groupId);
+    const active = group.querySelector('.chip.active');
+    return active ? active.dataset.value : null;
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copied');
+        showToast('Copiado para a area de transferencia!');
+        setTimeout(() => {
+            btn.textContent = 'Copiar';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// ==============================
+// PROMPT GENERATION ENGINE
+// ==============================
+
+function generateCaption(postType, category, tone, service, topic, audience) {
+    const serviceName = SERVICE_NAMES[service] || "solucoes eletricas";
+    const emoji = EMOJIS[service] || "⚡";
+    const topics = TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral;
+    const selectedTopic = topic || randomItem(topics);
+
+    // Select hook
+    const hooks = HOOKS[category] || HOOKS.educacional;
+    let hook = randomItem(hooks)
+        .replace("{tema}", selectedTopic)
+        .replace("{ano}", new Date().getFullYear());
+
+    // Build body based on type and category
+    let body = "";
+    const linebreak = "\n\n";
+
+    if (postType === "carrossel") {
+        body = buildCarouselCaption(category, serviceName, selectedTopic, emoji, tone);
+    } else if (postType === "reels") {
+        body = buildReelsCaption(category, serviceName, selectedTopic, emoji, tone);
+    } else if (postType === "stories") {
+        body = buildStoriesCaption(category, serviceName, selectedTopic, emoji, tone);
+    } else {
+        body = buildFeedCaption(category, serviceName, selectedTopic, emoji, tone);
+    }
+
+    // CTA
+    const cta = randomItem(CTAS);
+
+    // Compose final caption
+    const caption = `${emoji} ${hook}${linebreak}${body}${linebreak}${cta}${linebreak}---\n${BRAND.handle} | ${BRAND.slogan}`;
+
+    return caption;
+}
+
+function buildFeedCaption(category, service, topic, emoji, tone) {
+    const parts = [];
+
+    if (category === "educacional" || category === "curiosidade") {
+        parts.push(`${emoji} Muitas pessoas nao sabem, mas ${topic} pode impactar diretamente na seguranca da sua casa ou empresa.`);
+        parts.push(`Aqui na ${BRAND.name}, sempre recomendamos que voce consulte um profissional qualificado antes de tomar qualquer decisao sobre ${topic}.`);
+        parts.push(`Alguns pontos importantes:\n• Nunca faca ${topic} sem orientacao profissional\n• Verifique se os materiais estao dentro das normas\n• Seguranca em primeiro lugar, SEMPRE!`);
+    } else if (category === "dica") {
+        parts.push(`Dica valiosa sobre ${topic} que voce precisa saber! ${emoji}`);
+        parts.push(`O segredo eh simples: conte sempre com um profissional habilitado. Na ${BRAND.name}, garantimos qualidade e seguranca em cada servico.`);
+    } else if (category === "promocional") {
+        parts.push(`Estamos com condicoes especiais para ${topic}! ${emoji}`);
+        parts.push(`Na ${BRAND.name}, voce encontra:\n✅ Profissionais qualificados\n✅ Materiais de primeira linha\n✅ Garantia no servico\n✅ Atendimento personalizado`);
+        parts.push(`Nao perca essa oportunidade! Entre em contato agora.`);
+    } else if (category === "motivacional") {
+        parts.push(`Cada projeto que realizamos carrega dedicacao, conhecimento e paixao pelo que fazemos. ${emoji}`);
+        parts.push(`Na ${BRAND.name}, acreditamos que excelencia nao eh apenas fazer bem feito - eh superar expectativas em cada detalhe.`);
+    } else {
+        parts.push(`Mais um trabalho realizado com excelencia pela ${BRAND.name}! ${emoji}`);
+        parts.push(`Quando se trata de ${topic}, confianca e profissionalismo fazem toda a diferenca.`);
+    }
+
+    return parts.join("\n\n");
+}
+
+function buildCarouselCaption(category, service, topic, emoji, tone) {
+    const parts = [];
+    parts.push(`Deslize para o lado e confira esse conteudo completo sobre ${topic}! ${emoji}👉`);
+
+    if (category === "educacional") {
+        parts.push(`Nesse carrossel, voce vai aprender:\n📌 Slide 1: O que eh ${topic}\n📌 Slide 2: Por que eh importante\n📌 Slide 3: Principais erros a evitar\n📌 Slide 4: Como fazer da forma correta\n📌 Slide 5: Quando chamar um profissional\n📌 Slide 6: CTA - Ferreira Solucoes cuida disso pra voce!`);
+    } else if (category === "antes_depois") {
+        parts.push(`Veja a transformacao completa!\n📌 Slides 1-2: Situacao antes (problemas encontrados)\n📌 Slides 3-4: Processo de execucao\n📌 Slides 5-6: Resultado final impecavel!`);
+        parts.push(`Esse eh o padrao ${BRAND.name} de qualidade.`);
+    } else {
+        parts.push(`Conteudo rico sobre ${topic}. Cada slide traz uma informacao essencial para voce!`);
+        parts.push(`Salve esse post para consultar sempre que precisar.`);
+    }
+
+    return parts.join("\n\n");
+}
+
+function buildReelsCaption(category, service, topic, emoji, tone) {
+    const parts = [];
+
+    if (category === "bastidores") {
+        parts.push(`🎬 Acompanhe esse servico de ${topic} do inicio ao fim!`);
+        parts.push(`Roteiro sugerido:\n⏱ 0-3s: Gancho forte (mostre o problema)\n⏱ 3-8s: Apresente a situacao\n⏱ 8-20s: Processo de execucao\n⏱ 20-25s: Resultado final\n⏱ 25-30s: CTA + logo`);
+    } else if (category === "humor") {
+        parts.push(`😂 Quem eh da area vai se identificar!`);
+        parts.push(`Roteiro sugerido:\n⏱ 0-2s: Setup (cena do "problema")\n⏱ 2-5s: Expectativa\n⏱ 5-10s: Realidade (momento comico)\n⏱ 10-15s: Reacao + texto final\n🎵 Use uma musica em alta!`);
+    } else if (category === "dica" || category === "educacional") {
+        parts.push(`📱 Reels educativo sobre ${topic} - otimo para viralizar!`);
+        parts.push(`Roteiro sugerido:\n⏱ 0-3s: "Voce sabia que ${topic}...?" (texto na tela)\n⏱ 3-10s: Explicacao visual rapida\n⏱ 10-20s: Demonstracao pratica\n⏱ 20-25s: Resumo dos pontos principais\n⏱ 25-30s: "Siga ${BRAND.handle} para mais dicas!"`);
+    } else {
+        parts.push(`🎥 Confira esse Reels sobre ${topic}!`);
+        parts.push(`Dica: Reels entre 15-30 segundos tem melhor alcance. Use legendas na tela e musica trending!`);
+    }
+
+    return parts.join("\n\n");
+}
+
+function buildStoriesCaption(category, service, topic, emoji, tone) {
+    const parts = [];
+    parts.push(`📱 Sequencia de Stories sobre ${topic}:`);
+
+    if (category === "depoimento") {
+        parts.push(`Story 1: "Olha o que nosso cliente falou!" (print do depoimento)\nStory 2: Foto/video do servico realizado\nStory 3: Enquete: "Voce ja precisou desse servico?"\nStory 4: CTA com link/WhatsApp`);
+    } else if (category === "dica") {
+        parts.push(`Story 1: Enquete - "Voce sabia disso sobre ${topic}?" (Sim/Nao)\nStory 2: Revelacao da dica com visual atraente\nStory 3: Caixa de perguntas: "Qual sua duvida sobre ${topic}?"\nStory 4: CTA - "Salve esse story!"`);
+    } else {
+        parts.push(`Story 1: Gancho visual sobre ${topic}\nStory 2: Conteudo principal\nStory 3: Interacao (enquete, quiz ou pergunta)\nStory 4: CTA final`);
+    }
+
+    parts.push(`\n💡 Dica: Use stickers de interacao (enquete, quiz, slider de emoji) para aumentar o engajamento!`);
+
+    return parts.join("\n\n");
+}
+
+function generateHashtags(service, category) {
+    let tags = [];
+    tags.push(...randomItems(HASHTAGS.gerais, 5));
+    tags.push(...randomItems(HASHTAGS.engajamento, 4));
+
+    const serviceKey = service === "geral" ? "instalacao" : service;
+    if (HASHTAGS[serviceKey]) {
+        tags.push(...randomItems(HASHTAGS[serviceKey], 4));
+    } else {
+        tags.push(...randomItems(HASHTAGS.instalacao, 3));
+    }
+
+    // Deduplicate
+    tags = [...new Set(tags)];
+    return tags.slice(0, 15);
+}
+
+function generateImagePrompt(postType, category, service, topic) {
+    const serviceName = SERVICE_NAMES[service] || "solucoes eletricas";
+    const selectedTopic = topic || randomItem(TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral);
+
+    let prompt = "";
+
+    if (postType === "feed") {
+        prompt = `Crie uma imagem profissional para post de Instagram sobre "${selectedTopic}". Estilo: fotografia profissional com tons de azul e branco, visual moderno e limpo. Inclua elementos visuais relacionados a ${serviceName}. Resolucao: 1080x1080px. A imagem deve transmitir confianca e profissionalismo. Adicione espaco para texto overlay com o titulo do post. Marca: Ferreira Solucoes / @ferreira.eletrotech. Cores da marca: azul (#1a73e8) e branco.`;
+    } else if (postType === "carrossel") {
+        prompt = `Crie um design de carrossel para Instagram (6 slides, 1080x1080px cada) sobre "${selectedTopic}". Estilo: moderno, profissional, com tons de azul (#1a73e8) e branco. Slide 1: Capa com titulo chamativo. Slides 2-5: Conteudo informativo com icones e texto claro. Slide 6: CTA com logo da Ferreira Solucoes e @ferreira.eletrotech. Use fontes limpas e layout arejado.`;
+    } else if (postType === "reels") {
+        prompt = `Crie uma thumbnail/capa para Reels do Instagram sobre "${selectedTopic}". Resolucao: 1080x1920px (vertical). Estilo: chamativo, com texto grande e bold, cores vibrantes com base em azul (#1a73e8). Deve ter um gancho visual forte que faca a pessoa parar de rolar o feed. Inclua emoji relevante e o @ferreira.eletrotech discretamente.`;
+    } else {
+        prompt = `Crie um design para Stories do Instagram sobre "${selectedTopic}". Resolucao: 1080x1920px. Estilo: moderno e dinamico com tons de azul (#1a73e8). Inclua espaco para stickers de interacao (enquete, quiz). Visual limpo com a marca @ferreira.eletrotech.`;
+    }
+
+    return prompt;
+}
+
+// ==============================
+// UI FUNCTIONS
+// ==============================
+
+let history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+
+function generatePrompts() {
+    const postType = getSelectedChip('postType');
+    const category = getSelectedChip('category');
+    const tone = document.getElementById('tone').value;
+    const service = document.getElementById('service').value;
+    const topic = document.getElementById('topic').value;
+    const audience = document.getElementById('audience').value;
+
+    // Show loading
+    document.getElementById('loading').classList.add('visible');
+    document.getElementById('results').classList.remove('visible');
+
+    setTimeout(() => {
+        const caption = generateCaption(postType, category, tone, service, topic, audience);
+        const hashtags = generateHashtags(service, category);
+        const imagePrompt = generateImagePrompt(postType, category, service, topic);
+
+        // Alternative caption
+        const altCaption = generateCaption(postType, category, tone, service, topic, audience);
+
+        displayResults(caption, altCaption, hashtags, imagePrompt, postType, category, service);
+
+        // Save to history
+        saveToHistory(postType, category, service, caption, hashtags);
+
+        document.getElementById('loading').classList.remove('visible');
+    }, 800);
+}
+
+function displayResults(caption, altCaption, hashtags, imagePrompt, postType, category, service) {
+    const resultsDiv = document.getElementById('results');
+    const typeLabels = { feed: "Feed", reels: "Reels", carrossel: "Carrossel", stories: "Stories" };
+    const catLabels = { educacional: "Educacional", dica: "Dica Rapida", bastidores: "Bastidores", antes_depois: "Antes e Depois", promocional: "Promocional", depoimento: "Depoimento", curiosidade: "Curiosidade", tendencia: "Tendencia", humor: "Humor/Meme", motivacional: "Motivacional" };
+
+    resultsDiv.innerHTML = `
+        <div style="text-align:center; margin-bottom:1rem;">
+            <span style="background: var(--primary-light); color: var(--primary); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600;">
+                ${typeLabels[postType] || postType} | ${catLabels[category] || category}
+            </span>
+        </div>
+
+        <div class="result-block">
+            <div class="result-header">
+                <h3>📝 Legenda Principal</h3>
+                <button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent, this)">Copiar</button>
+            </div>
+            <div class="result-content">${escapeHtml(caption)}</div>
+        </div>
+
+        <div class="result-block">
+            <div class="result-header">
+                <h3>🔄 Legenda Alternativa</h3>
+                <button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent, this)">Copiar</button>
+            </div>
+            <div class="result-content">${escapeHtml(altCaption)}</div>
+        </div>
+
+        <div class="result-block">
+            <div class="result-header">
+                <h3>#️⃣ Hashtags Sugeridas</h3>
+                <button class="copy-btn" onclick="copyText('${hashtags.join(' ')}', this)">Copiar Todas</button>
+            </div>
+            <div class="hashtag-list">
+                ${hashtags.map(h => `<span class="hashtag">${h}</span>`).join('')}
+            </div>
+            <div class="counter">${hashtags.length} hashtags selecionadas</div>
+        </div>
+
+        <div class="result-block">
+            <div class="result-header">
+                <h3>🎨 Prompt para Gerar Imagem (IA)</h3>
+                <button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent, this)">Copiar</button>
+            </div>
+            <div class="result-content">${escapeHtml(imagePrompt)}</div>
+        </div>
+
+        <div class="btn-group" style="justify-content: center; margin-top: 1.5rem;">
+            <button class="btn btn-secondary" onclick="generatePrompts()">🔄 Gerar Novamente</button>
+            <button class="btn btn-success" onclick="exportAll('${escapeAttr(caption)}', '${escapeAttr(hashtags.join(' '))}', '${escapeAttr(imagePrompt)}')">📥 Exportar Tudo</button>
+        </div>
+    `;
+
+    resultsDiv.classList.add('visible');
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+}
+
+function escapeAttr(text) {
+    return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+function exportAll(caption, hashtags, imagePrompt) {
+    const content = `FERREIRA ELETROTECH - PROMPT GERADO\n${'='.repeat(50)}\n\nLEGENDA:\n${caption}\n\nHASHTAGS:\n${hashtags}\n\nPROMPT PARA IMAGEM:\n${imagePrompt}\n\n${'='.repeat(50)}\nGerado por Ferreira Eletrotech Prompt Generator`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `prompt-ferreira-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Arquivo exportado com sucesso!');
+}
+
+function saveToHistory(postType, category, service, caption, hashtags) {
+    const entry = {
+        date: new Date().toLocaleString('pt-BR'),
+        postType,
+        category,
+        service,
+        caption: caption.substring(0, 100) + '...',
+        fullCaption: caption,
+        hashtags
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('promptHistory', JSON.stringify(history));
+    renderHistory();
+}
+
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+        list.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; padding: 2rem;">Nenhum prompt gerado ainda.</p>';
+        return;
+    }
+
+    const catLabels = { educacional: "Educacional", dica: "Dica", bastidores: "Bastidores", antes_depois: "A&D", promocional: "Promo", depoimento: "Depoimento", curiosidade: "Curiosidade", tendencia: "Tendencia", humor: "Humor", motivacional: "Motivacional" };
+
+    list.innerHTML = history.slice(0, 20).map((item, i) => `
+        <div class="history-item" onclick="copyText(\`${item.fullCaption.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`, this.querySelector('.copy-btn'))">
+            <div>
+                <div class="title">${catLabels[item.category] || item.category} - ${item.postType}</div>
+                <div class="meta">${item.date}</div>
+            </div>
+            <button class="copy-btn" onclick="event.stopPropagation()">Copiar</button>
+        </div>
+    `).join('');
+}
+
+function generateCalendar() {
+    const service = document.getElementById('service')?.value || 'geral';
+    const days = Object.entries(CALENDAR_THEMES);
+    let html = '<div style="display:grid; gap:0.75rem; margin-top:1rem;">';
+
+    days.forEach(([day, info]) => {
+        const dayNames = { segunda: "Segunda-feira", terca: "Terca-feira", quarta: "Quarta-feira", quinta: "Quinta-feira", sexta: "Sexta-feira", sabado: "Sabado", domingo: "Domingo" };
+        const topics = TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral;
+        const topic = randomItem(topics);
+        const hooks = HOOKS[info.cat] || HOOKS.educacional;
+        const hook = randomItem(hooks).replace("{tema}", topic).replace("{ano}", new Date().getFullYear());
+
+        html += `
+            <div style="background: white; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; display: flex; gap: 1rem; align-items: flex-start;">
+                <div style="font-size: 1.5rem;">${info.emoji}</div>
+                <div style="flex:1;">
+                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--primary);">${dayNames[day]}</div>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.3rem;">${info.tema}</div>
+                    <div style="font-size: 0.85rem; font-weight: 500;">"${hook}"</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">Topico: ${topic}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    html += '<div class="btn-group" style="justify-content:center; margin-top:1rem;"><button class="btn btn-secondary" onclick="generateCalendar()">🔄 Gerar Novo Calendario</button></div>';
+    document.getElementById('calendarResult').innerHTML = html;
+}
+
+// ==============================
+// INITIALIZATION
+// ==============================
+
+// Chip selection
+document.querySelectorAll('.chip-group').forEach(group => {
+    group.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+        });
+    });
+});
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tabId = tab.dataset.tab;
+        ['generator', 'templates', 'calendar', 'history'].forEach(id => {
+            const el = document.getElementById('tab-' + id);
+            if (el) el.style.display = id === tabId ? 'block' : 'none';
+        });
+        if (tabId === 'history') renderHistory();
+    });
+});
+
+// Render quick templates
+const grid = document.getElementById('templatesGrid');
+QUICK_TEMPLATES.forEach(tpl => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `<div class="emoji">${tpl.emoji}</div><div class="name">${tpl.name}</div><div class="desc">${tpl.desc}</div>`;
+    card.addEventListener('click', () => {
+        // Switch to generator tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('[data-tab="generator"]').classList.add('active');
+        ['generator', 'templates', 'calendar', 'history'].forEach(id => {
+            const el = document.getElementById('tab-' + id);
+            if (el) el.style.display = id === 'generator' ? 'block' : 'none';
+        });
+
+        // Set values
+        setChip('postType', tpl.type);
+        setChip('category', tpl.category);
+        document.getElementById('tone').value = tpl.tone;
+        if (tpl.service) document.getElementById('service').value = tpl.service;
+
+        // Auto generate
+        setTimeout(() => generatePrompts(), 200);
+    });
+    grid.appendChild(card);
+});
+
+function setChip(groupId, value) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.value === value);
+    });
+}
+
+// Render initial history
+renderHistory();
+</script>
+</body>
+</html>
