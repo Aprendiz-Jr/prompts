@@ -923,7 +923,7 @@ function displayResults(caption, altCaption, hashtags, imagePrompt, postType, ca
         </div>
         <div class="btn-group" style="justify-content:center;margin-top:1.5rem;">
             <button class="btn btn-secondary" onclick="generatePrompts()">🔄 Gerar Novamente</button>
-            <button class="btn btn-primary" onclick="openScheduleModal(\`${caption.replace(/`/g,'\\`').replace(/\\/g,'\\\\')}\`,\`${hashStr.replace(/`/g,'\\`')}\`)">📅 Agendar Post</button>
+            <button class="btn btn-primary" onclick="openScheduleModal(\`${caption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,\`${hashStr.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`)">📅 Agendar Post</button>
             <button class="btn btn-success" onclick="exportAll()">📥 Exportar</button>
         </div>`;
     resultsDiv.classList.add('visible');
@@ -944,6 +944,7 @@ function exportAll() {
     a.href = URL.createObjectURL(blob);
     a.download = `prompt-ferreira-${Date.now()}.txt`;
     a.click();
+    URL.revokeObjectURL(a.href);
     showToast('Arquivo exportado!');
 }
 
@@ -1033,8 +1034,8 @@ function renderSchedule() {
     });
 
     list.innerHTML = sorted.map(post => {
-        const badgeClass = post.status === 'published' ? 'badge-published' : post.status === 'failed' ? 'badge-failed' : 'badge-pending';
-        const badgeText = post.status === 'published' ? 'Publicado' : post.status === 'failed' ? 'Falhou' : 'Pendente';
+        const badgeClass = post.status === 'published' ? 'badge-published' : post.status === 'failed' ? 'badge-failed' : post.status === 'publishing' ? 'badge-pending' : 'badge-pending';
+        const badgeText = post.status === 'published' ? 'Publicado' : post.status === 'failed' ? 'Falhou' : post.status === 'publishing' ? 'Publicando...' : 'Pendente';
         const preview = post.caption.substring(0, 80) + (post.caption.length > 80 ? '...' : '');
         const dateStr = new Date(post.date + 'T' + post.time).toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short' });
         return `<div class="schedule-item">
@@ -1074,7 +1075,7 @@ async function publishNow() {
 
 async function publishSinglePost(id) {
     const post = scheduledPosts.find(p => p.id === id);
-    if (!post) return;
+    if (!post || post.status === 'publishing') return;
     if (!post.image) { showToast('Post sem URL de imagem. Adicione uma imagem para publicar.'); return; }
     const fullCaption = post.caption + '\n\n' + post.hashtags;
     const success = await publishToInstagram(post.image, fullCaption);
@@ -1126,22 +1127,33 @@ async function publishToInstagram(imageUrl, caption) {
 }
 
 // Auto-publish checker (runs every minute)
-function checkScheduledPosts() {
+let isPublishing = false;
+async function checkScheduledPosts() {
+    if (isPublishing) return;
     const now = new Date();
     const accountId = localStorage.getItem('ig_account_id');
     const token = localStorage.getItem('ig_access_token');
     if (!accountId || !token) return;
 
-    scheduledPosts.forEach(async (post) => {
-        if (post.status !== 'pending') return;
-        const postTime = new Date(post.date + 'T' + post.time);
-        if (now >= postTime && post.image) {
-            const fullCaption = post.caption + '\n\n' + post.hashtags;
-            const success = await publishToInstagram(post.image, fullCaption);
-            post.status = success ? 'published' : 'failed';
-            saveSchedule();
+    const pendingPosts = scheduledPosts.filter(p => p.status === 'pending');
+    if (pendingPosts.length === 0) return;
+
+    isPublishing = true;
+    try {
+        for (const post of pendingPosts) {
+            const postTime = new Date(post.date + 'T' + post.time);
+            if (now >= postTime && post.image) {
+                post.status = 'publishing';
+                saveSchedule();
+                const fullCaption = post.caption + '\n\n' + post.hashtags;
+                const success = await publishToInstagram(post.image, fullCaption);
+                post.status = success ? 'published' : 'failed';
+                saveSchedule();
+            }
         }
-    });
+    } finally {
+        isPublishing = false;
+    }
 }
 setInterval(checkScheduledPosts, 60000);
 
@@ -1232,9 +1244,9 @@ function renderHistory() {
     }
     const catLabels = { educacional:"Educacional", dica:"Dica", bastidores:"Bastidores", antes_depois:"A&D", promocional:"Promo", depoimento:"Depoimento", curiosidade:"Curiosidade", tendencia:"Tendencia", humor:"Humor", motivacional:"Motivacional" };
     list.innerHTML = history.slice(0,20).map((item, i) => `
-        <div class="history-item" onclick="copyText(\`${item.fullCaption.replace(/`/g,'\\`').replace(/\\/g,'\\\\')}\`,null)">
+        <div class="history-item" onclick="copyText(\`${item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,null)">
             <div><div class="title">${catLabels[item.category]||item.category} - ${item.postType}</div><div class="meta">${item.date}</div></div>
-            <button class="copy-btn" onclick="event.stopPropagation();copyText(\`${item.fullCaption.replace(/`/g,'\\`').replace(/\\/g,'\\\\')}\`,this)">Copiar</button>
+            <button class="copy-btn" onclick="event.stopPropagation();copyText(\`${item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`,this)">Copiar</button>
         </div>`).join('');
 }
 
