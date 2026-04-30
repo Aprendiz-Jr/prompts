@@ -854,7 +854,7 @@ function updateTopicSuggestions() {
 }
 
 function selectTopicChip(el, topic) {
-    document.querySelectorAll('.topic-chip').forEach(c => c.style.background = '');
+    document.querySelectorAll('.topic-chip').forEach(c => { c.style.background = ''; c.style.borderColor = ''; c.style.color = ''; });
     el.style.background = 'var(--primary-light)';
     el.style.borderColor = 'var(--primary)';
     el.style.color = 'var(--primary)';
@@ -1071,7 +1071,7 @@ function displayResults(caption, altCaption, hashtags, imagePrompt, postType, ca
                         <div class="preview-username">ferreira.eletrotech</div>
                     </div>
                     <div class="preview-image">${emoji}</div>
-                    <div class="preview-caption">${escapeHtml(caption.split('\n---')[0].substring(0, 300))}${caption.length > 300 ? '...' : ''}</div>
+                    <div class="preview-caption">${escapeHtml(caption.split('\n---')[0].substring(0, 300))}${caption.split('\n---')[0].length > 300 ? '...' : ''}</div>
                     <div class="preview-hashtags">${hashStr}</div>
                 </div>
             </div>
