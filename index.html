@@ -175,7 +175,7 @@ textarea { resize: vertical; min-height: 80px; }
 <body>
 <div class="header">
   <div class="top-bar">
-    <div class="version">v5.0</div>
+    <div class="version">v5.1</div>
     <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar tema">&#9790;</button>
   </div>
   <div class="brand">FERREIRA.<span>ELETROTECH</span></div>
@@ -444,14 +444,87 @@ var temasPorTipo = {
 };
 
 var angulos = [
-  "extreme close-up macro shot","overhead bird's-eye flat-lay","eye-level 45-degree angle",
-  "low-angle looking up","side profile shot","three-quarter view","over-the-shoulder POV",
-  "wide establishing shot","split-screen before/after","dramatic single-light side lighting"
+  "tight close-up showing texture and wear on the component",
+  "overhead flat-lay of tools and parts spread on the workbench",
+  "eye-level shot as if the viewer is standing next to the technician",
+  "low angle from floor level looking up at the technician working",
+  "side profile capturing the technician's focused expression",
+  "three-quarter view showing both the technician and the work area",
+  "over-the-shoulder POV as if watching the repair happen",
+  "wide shot showing the full room and work environment",
+  "detail shot of hands working on small components",
+  "candid moment captured mid-action without posing",
+  "shot through a doorway or window framing the work scene",
+  "slightly tilted dutch angle adding dynamic energy",
+  "from below the workbench looking up through components",
+  "pulled-back environmental portrait with context",
+  "macro detail of a specific connection point or damage",
+  "two-shot showing technician explaining to client",
+  "reflection shot in a shiny surface or screen",
+  "foreground blur with sharp focus on the key action",
+  "straight-on documentary style like a news photo",
+  "diagonal composition with leading lines from cables or tools"
 ];
 var moods = [
-  "clinical workshop fluorescent light","warm golden side lamp","cool blue LED strip backlight",
-  "dramatic single overhead spotlight","natural window light from left","dual softbox studio",
-  "moody underlit dark atmosphere","harsh top-down work light","cinematic backlit silhouette"
+  "harsh fluorescent workshop light with greenish cast, realistic indoor",
+  "warm afternoon sun coming through a window, natural golden hour",
+  "mixed lighting - cool LED work lamp plus warm ambient room light",
+  "overcast daylight from an open garage door, soft and even",
+  "single bare bulb hanging above, casting hard shadows",
+  "phone flashlight illuminating inside a dark electrical panel",
+  "early morning light in a simple Brazilian house kitchen",
+  "dim room with only the laptop screen glowing on the technician face",
+  "bright midday tropical sun in a Saquarema backyard",
+  "cloudy day diffused light through frosted bathroom window",
+  "work lamp clipped to shelf casting directional warm light",
+  "neon sign or LED strip providing colored accent in background",
+  "rainy day with grey overcast light and wet surfaces reflecting",
+  "late afternoon side light creating long shadows on the wall",
+  "practical lighting only from existing room fixtures, no studio gear",
+  "headlamp beam cutting through dusty air in a crawl space",
+  "sunset light filtering through window blinds creating stripe patterns",
+  "harsh overhead kitchen ceiling light typical of Brazilian homes",
+  "dark scene with only the soldering iron tip glowing orange",
+  "fluorescent tube light in a small commercial space"
+];
+var detalhesRealismo = [
+  "sweat stains on the work shirt collar",
+  "dust particles visible in the beam of light",
+  "coffee mug on the edge of the workbench",
+  "cell phone with cracked screen protector nearby",
+  "electrical tape residue on fingers",
+  "slight motion blur on the working hand",
+  "scuff marks and scratches on the work surface",
+  "loose screws scattered on the bench",
+  "cable ties and zip-tie tails sticking out",
+  "worn rubber grip on the screwdriver handle",
+  "price sticker partially peeled on a new component box",
+  "water bottle and snack wrapper in the background",
+  "old calendar on the wall behind the work area",
+  "client shoes visible at the edge of the frame",
+  "smudged fingerprints on the laptop screen",
+  "pen tucked behind the technician ear",
+  "wire strippers hanging from belt loop",
+  "receipt paper from the parts store on the bench",
+  "fan running in the background slightly blurred",
+  "dog or cat partially visible in the doorway"
+];
+var composicoes = [
+  "rule of thirds with the main action off-center",
+  "centered symmetrical composition for impact",
+  "foreground-midground-background layering for depth",
+  "negative space on one side for text overlay area",
+  "diagonal leading lines from cables or conduit",
+  "frame within a frame using doorway or panel border",
+  "tight crop eliminating background distractions",
+  "environmental context showing the full workspace",
+  "split composition comparing old vs new side by side",
+  "golden spiral following the curve of a cable or wire"
+];
+var horaDia = [
+  "early morning around 7am","mid-morning around 10am","noon with harsh overhead light",
+  "early afternoon around 2pm","late afternoon golden hour around 5pm","evening around 7pm",
+  "night with only artificial lighting"
 ];
 
 var CALENDAR_THEMES = {
@@ -484,7 +557,14 @@ var QUICK_TEMPLATES = [
 ];
 
 function escHtml(t) { return t ? t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
-function shuffleArr(arr) { return arr.slice().sort(function() { return Math.random() - .5; }); }
+function shuffleArr(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
 function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -550,8 +630,12 @@ function buildPromptText(tipo, qtd, formato, tom, temaCustom) {
   }
   var temasEscolhidos = [];
   var usados = {};
+  var recentTemas = JSON.parse(localStorage.getItem('fe_recent_temas') || '[]');
   var angulosShuf = shuffleArr(angulos);
   var moodsShuf = shuffleArr(moods);
+  var detalhesShuf = shuffleArr(detalhesRealismo);
+  var compsShuf = shuffleArr(composicoes);
+  var horasShuf = shuffleArr(horaDia);
   for (var i = 0; i < parseInt(qtd); i++) {
     var cat = tiposDisponiveis[i % tiposDisponiveis.length];
     var lista = temasPorTipo[cat] || temasPorTipo.informatica;
@@ -560,19 +644,31 @@ function buildPromptText(tipo, qtd, formato, tom, temaCustom) {
     if (temaCustom && temaCustom.trim()) {
       tema = temaCustom.trim();
     } else {
+      var listaShuf = shuffleArr(lista);
       do {
-        tema = lista[Math.floor(Math.random() * lista.length)];
+        tema = listaShuf[tentativas % listaShuf.length];
         tentativas++;
-      } while (usados[cat].indexOf(tema) !== -1 && tentativas < 20);
+      } while ((usados[cat].indexOf(tema) !== -1 || recentTemas.indexOf(tema) !== -1) && tentativas < lista.length * 2);
     }
     usados[cat].push(tema);
-    temasEscolhidos.push({ cat: cat, tema: tema, angulo: angulosShuf[i % angulosShuf.length], mood: moodsShuf[i % moodsShuf.length] });
+    recentTemas.push(tema);
+    temasEscolhidos.push({
+      cat: cat, tema: tema,
+      angulo: angulosShuf[i % angulosShuf.length],
+      mood: moodsShuf[i % moodsShuf.length],
+      detalhe: detalhesShuf[i % detalhesShuf.length],
+      composicao: compsShuf[i % compsShuf.length],
+      hora: horasShuf[i % horasShuf.length]
+    });
   }
+  if (recentTemas.length > 40) recentTemas = recentTemas.slice(-40);
+  localStorage.setItem('fe_recent_temas', JSON.stringify(recentTemas));
   var temasStr = temasEscolhidos.map(function(t, idx) {
-    return 'Prompt ' + (idx + 1) + '\n  - Categoria: ' + t.cat + '\n  - Tema central: "' + t.tema + '"\n  - Angulo obrigatorio: ' + t.angulo + '\n  - Iluminacao/mood obrigatorio: ' + t.mood + '\n  - O prompt deve ser UNICO e diferente dos demais em composicao, profundidade de campo e narrativa visual';
+    return 'Prompt ' + (idx + 1) + '\n  - Categoria: ' + t.cat + '\n  - Cena central: "' + t.tema + '"\n  - Ponto de vista da camera: ' + t.angulo + '\n  - Luz e ambiente: ' + t.mood + '\n  - Detalhe de realismo para incluir: ' + t.detalhe + '\n  - Composicao: ' + t.composicao + '\n  - Horario do dia: ' + t.hora + '\n  - IMPORTANTE: cada prompt deve ter narrativa visual completamente diferente dos demais';
   }).join('\n\n');
-  return 'Voce e especialista em criacao de prompts fotorrealistas para IA (Midjourney, DALL-E 3, Firefly) e marketing digital para pequenas empresas brasileiras.\n\n' +
-    'EMPRESA: FERREIRA.ELETROTECH\nResponsavel: Ferreira - trabalha SOZINHO, e autonomo, atende tudo ele mesmo pessoalmente\nLocalizacao: Saquarema e Regiao, Rio de Janeiro, Brasil\nServicos: montagem e manutencao de PCs e notebooks, troca de tela/HD/RAM/SSD, formatacao, remocao de virus, recuperacao de dados, solda em placa + eletrica residencial (quadros, tomadas, fiacao, LED, DPS, aterramento, chuveiro, ar-condicionado)\nPublico: moradores de Saquarema, Araruama, Sao Pedro da Aldeia - casas simples de alvenaria, muitas casas de praia antigas com instalacao velha\nIdentidade visual: fundo escuro, azul eletrico (#00b8ff), amarelo/dourado (#f5c400)\n\nData: ' + diaS + ', ' + dataS + '\n\nFORMATO DO POST: ' + formatoLabel + '\nTOM DE VOZ: ' + tomDesc + '\n\nTEMAS PARA GERAR - siga EXATAMENTE cada especificacao:\n' + temasStr + '\n\nREGRAS OBRIGATORIAS PARA TODOS OS PROMPTS:\n1. Prompt em ingles: minimo 130 palavras, fotorrealista, camera/lente especifica (ex: Canon EOS R5, Nikon Z8, Sony A7R V - com mm e abertura), resolucao 8K\n2. Usar o ANGULO e o MOOD especificados - isso e obrigatorio para garantir variedade\n3. Descrever a cena como FOTO REAL de atendimento - detalhar texturas, materiais, marcas visiveis, sujeira, desgaste realista\n4. Marcas reais quando cabivel: Schneider, Intelbras, WEG, Lenovo, Dell, Acer, Samsung, Kingston, Western Digital, Arctic, Lorenzetti\n5. Contexto brasileiro: paredes de alvenaria com textura, azulejo de banheiro, quintal com grama, casas simples\n6. Adaptar composicao ao formato: ' + formatoLabel + '\n\nREGRAS OBRIGATORIAS PARA TODAS AS LEGENDAS:\n7. Linha 1: gancho que para o scroll - frase de impacto, surpresa ou medo saudavel\n8. Linhas 2-4: contexto, dica tecnica ou historia do caso\n9. CTA FINAL: usar APENAS "Chama no direct" OU "Clica no link da bio" - NUNCA "chama no WhatsApp" ou "manda mensagem"\n10. PROIBIDO: "Nossa equipe", "nosso time", "nossa empresa" - Ferreira e AUTONOMO. Usar: "Na Ferreira.Eletrotech", "Aqui eu faco", "Eu resolvo", "Pode contar comigo", "O Ferreira resolve"\n11. TOM: ' + tomDesc + '\n12. Hashtags: #TecnicoSaquarema #EletricistaSaquarema #InformaticaSaquarema #ManutencaoDePC #FerreiraTech #SaquaremaRJ #ConsertoDeNotebook #EletristaResidencial\n\nResponda SOMENTE com JSON puro, sem texto antes nem depois:\n{\n  "prompts": [\n    {\n      "titulo": "titulo criativo em portugues",\n      "categoria": "informatica",\n      "formato": "' + formatoLabel.split(' (')[0] + '",\n      "descricao": "objetivo do post em uma frase",\n      "prompt": "prompt completo em ingles fotorrealista",\n      "legenda": "legenda completa em portugues com emojis, CTA (direct ou link da bio) e hashtags"\n    }\n  ]\n}';
+  var sessionSeed = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  return 'Voce e um fotografo documental brasileiro especializado em registrar o dia a dia REAL de tecnicos autonomos. Suas fotos parecem tiradas por um celular bom ou camera mirrorless em situacoes reais de trabalho - NUNCA parecem fotos de banco de imagens ou renders 3D.\n\n' +
+    'EMPRESA: FERREIRA.ELETROTECH\nResponsavel: Ferreira - trabalha SOZINHO, e autonomo, atende tudo ele mesmo pessoalmente\nLocalizacao: Saquarema e Regiao, Rio de Janeiro, Brasil\nServicos: montagem e manutencao de PCs e notebooks, troca de tela/HD/RAM/SSD, formatacao, remocao de virus, recuperacao de dados, solda em placa + eletrica residencial (quadros, tomadas, fiacao, LED, DPS, aterramento, chuveiro, ar-condicionado)\nPublico: moradores de Saquarema, Araruama, Sao Pedro da Aldeia - casas simples de alvenaria, muitas casas de praia antigas com instalacao velha\n\nData: ' + diaS + ', ' + dataS + '\nSeed de variacao: ' + sessionSeed + ' (use para variar vocabulario e estrutura)\n\nFORMATO DO POST: ' + formatoLabel + '\nTOM DE VOZ: ' + tomDesc + '\n\nTEMAS PARA GERAR - siga EXATAMENTE cada especificacao:\n' + temasStr + '\n\nCOMO ESCREVER PROMPTS FOTORREALISTAS NATURAIS:\n1. Prompt em ingles, minimo 130 palavras. Descreva como uma CENA REAL acontecendo, nao como uma foto posada.\n2. OBRIGATORIO usar o ponto de vista, luz, detalhe de realismo, composicao e horario especificados acima.\n3. Estilo DOCUMENTAL/JORNALISTICO: como se um fotografo estivesse acompanhando o Ferreira num dia de trabalho. Nada de poses artificiais.\n4. IMPERFEICOES REALISTAS obrigatorias: poeira no ar, fios soltos, paredes com marca de umidade, piso de ceramica gasto, azulejo antigo, interruptores amarelados pelo tempo, marcas de fita isolante, riscos em superficies.\n5. Descrever iluminacao NATURAL e PRATICA (luz de janela, lampada de teto, lanterna do celular) - NUNCA usar termos de estudio como "softbox", "key light", "fill light", "rim light".\n6. NAO especificar camera, lente ou abertura - descrever apenas o EFEITO visual (fundo desfocado, tudo em foco, granulado de pouca luz).\n7. Contexto brasileiro real: parede de alvenaria pintada de branco encardido, porta de madeira, janela de aluminio, piso frio, teto de laje com reboco aparente, quintal com muro de bloco.\n8. Marcas reais de produtos quando cabivel: Schneider, Intelbras, WEG, Lenovo, Dell, Acer, Samsung, Kingston, Western Digital, Arctic, Lorenzetti.\n9. Cada prompt DEVE ter vocabulario, estrutura de frase e narrativa visual COMPLETAMENTE DIFERENTES. Nao reutilizar adjetivos ou descricoes entre prompts.\n10. Adaptar composicao ao formato: ' + formatoLabel + '\n\nREGRAS PARA LEGENDAS:\n11. Linha 1: gancho que para o scroll - frase de impacto, surpresa ou medo saudavel. CADA legenda deve ter um gancho completamente diferente.\n12. Linhas 2-4: contexto, dica tecnica ou historia do caso. Variar entre: pergunta retorica, dado surpreendente, historia de cliente, dica pratica, alerta de seguranca.\n13. CTA FINAL: variar entre "Chama no direct" e "Clica no link da bio" - NUNCA "chama no WhatsApp" ou "manda mensagem"\n14. PROIBIDO: "Nossa equipe", "nosso time", "nossa empresa" - Ferreira e AUTONOMO. Usar variando: "Na Ferreira.Eletrotech", "Aqui eu faco", "Eu resolvo", "Pode contar comigo", "O Ferreira resolve"\n15. TOM: ' + tomDesc + '\n16. Hashtags: VARIAR entre estas (usar 5-8 por post, nao todas): #TecnicoSaquarema #EletricistaSaquarema #InformaticaSaquarema #ManutencaoDePC #FerreiraTech #SaquaremaRJ #ConsertoDeNotebook #EletristaResidencial #DicaDeTecnico #AssistenciaTecnica #TecnologiaSaquarema #EletricaResidencial #PCGamer #NotebookConserto\n\nResponda SOMENTE com JSON puro, sem texto antes nem depois:\n{\n  "prompts": [\n    {\n      "titulo": "titulo criativo em portugues (UNICO para cada prompt)",\n      "categoria": "informatica",\n      "formato": "' + formatoLabel.split(' (')[0] + '",\n      "descricao": "objetivo do post em uma frase",\n      "prompt": "prompt completo em ingles - estilo foto documental, sem mencionar camera ou lente",\n      "legenda": "legenda completa em portugues com emojis, CTA e hashtags variadas"\n    }\n  ]\n}';
 }
 
 function getApiConfig() {
@@ -584,14 +680,26 @@ function callAI(promptText) {
   if (!cfg.apiKey) return Promise.reject(new Error('Chave de API nao configurada. Va em Config e insira sua chave.'));
   if (cfg.provider === 'gemini') {
     var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + cfg.apiKey;
-    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { temperature: 0.7, responseMimeType: 'application/json' } }) })
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { temperature: 0.95, topP: 0.95, responseMimeType: 'application/json' } }) })
       .then(function(resp) { if (!resp.ok) return resp.json().catch(function() { return {}; }).then(function(err) { throw new Error((err.error && err.error.message) || 'Erro Gemini HTTP ' + resp.status); }); return resp.json(); })
       .then(function(data) { var raw = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text; if (!raw) throw new Error('Resposta vazia da Gemini'); return JSON.parse(raw); });
   } else {
-    return fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + cfg.apiKey.trim(), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: cfg.model, messages: [{ role: 'system', content: 'Voce e um assistente que gera apenas respostas em formato JSON puro.' }, { role: 'user', content: promptText }], response_format: { type: 'json_object' }, temperature: 0.7 }) })
+    return fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + cfg.apiKey.trim(), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: cfg.model, messages: [{ role: 'system', content: 'Voce e um fotografo documental brasileiro. Gere prompts fotorrealistas que parecem fotos reais de celular ou camera mirrorless em situacoes reais de trabalho tecnico. NUNCA gere descricoes que parecem renders, stock photos ou fotos de estudio. Responda apenas em JSON puro.' }, { role: 'user', content: promptText }], response_format: { type: 'json_object' }, temperature: 0.95, top_p: 0.95 }) })
       .then(function(resp) { if (!resp.ok) return resp.json().catch(function() { return {}; }).then(function(err) { throw new Error((err.error && err.error.message) || 'Erro Groq HTTP ' + resp.status); }); return resp.json(); })
       .then(function(data) { return JSON.parse(data.choices[0].message.content); });
   }
+}
+
+function getRecentHistory() {
+  var hist = JSON.parse(localStorage.getItem('fe_history') || '[]');
+  if (!hist.length) return '';
+  var recent = hist.slice(0, 3);
+  var titles = [];
+  recent.forEach(function(h) {
+    if (h.cards) h.cards.forEach(function(c) { if (c.titulo) titles.push(c.titulo); });
+  });
+  if (!titles.length) return '';
+  return '\n\nTITULOS RECENTES JA USADOS (NAO REPETIR nenhum destes temas ou titulos similares):\n- ' + titles.join('\n- ');
 }
 
 function gerar() {
@@ -607,7 +715,7 @@ function gerar() {
   btn.disabled = true; btn.classList.add('loading');
   var providerName = cfg.provider === 'gemini' ? 'Gemini' : 'Groq';
   results.innerHTML = '<div class="loading-anim"><span class="l-icon">\u27F3</span><p>' + providerName + ' esta processando...<br><span style="color:var(--text4);font-size:11px;">Gerando ' + qtd + ' prompt(s) com IA</span></p></div>';
-  var promptText = buildPromptText(tipo, qtd, formato, tom, temaCustom);
+  var promptText = buildPromptText(tipo, qtd, formato, tom, temaCustom) + getRecentHistory();
   callAI(promptText).then(function(parsed) {
     currentCards = parsed.prompts || [];
     if (!currentCards.length) throw new Error('Nenhum prompt gerado. Tente novamente.');
