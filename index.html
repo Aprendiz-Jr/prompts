@@ -1,1465 +1,792 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Prompts v2.1 - Ferreira Eletrotech</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        :root {
-            --primary: #1a73e8;
-            --primary-dark: #1557b0;
-            --primary-light: #e8f0fe;
-            --accent: #f59e0b;
-            --accent-dark: #d97706;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --gradient: linear-gradient(135deg, #1a73e8, #6366f1);
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-            --radius: 12px;
-        }
-        [data-theme="dark"] {
-            --primary: #4a9eff;
-            --primary-dark: #2d7dd2;
-            --primary-light: #1e3a5f;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --gradient: linear-gradient(135deg, #2563eb, #7c3aed);
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-        .header {
-            background: var(--gradient); color: white;
-            padding: 1.5rem; text-align: center;
-            position: relative; overflow: hidden;
-        }
-        .header::before {
-            content: ''; position: absolute; top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
-        }
-        .header h1 { font-size: 1.6rem; font-weight: 800; position: relative; margin-bottom: 0.3rem; }
-        .header p { font-size: 0.9rem; opacity: 0.9; position: relative; }
-        .header .brand {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: rgba(255,255,255,0.15); padding: 0.35rem 0.9rem;
-            border-radius: 50px; font-size: 0.82rem; margin-top: 0.5rem;
-            position: relative; backdrop-filter: blur(5px);
-        }
-        .header .top-bar {
-            position: absolute; top: 0.75rem; right: 1rem;
-            display: flex; gap: 0.5rem; align-items: center;
-        }
-        .header .version {
-            background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem;
-            border-radius: 50px; font-size: 0.7rem; font-weight: 600;
-        }
-        .theme-toggle {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-            font-size: 1rem; display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
-        }
-        .theme-toggle:hover { background: rgba(255,255,255,0.35); }
-        .container { max-width: 960px; margin: 0 auto; padding: 1.25rem; }
-        .card {
-            background: var(--card); border-radius: var(--radius);
-            border: 1px solid var(--border); padding: 1.5rem;
-            margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);
-            transition: box-shadow 0.2s, background 0.3s, border-color 0.3s;
-        }
-        .card:hover { box-shadow: var(--shadow-md); }
-        .card-title {
-            font-size: 1rem; font-weight: 700; margin-bottom: 1rem;
-            display: flex; align-items: center; gap: 0.5rem; color: var(--text);
-        }
-        .card-title .icon {
-            width: 32px; height: 32px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; flex-shrink: 0;
-        }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary); }
-        select, input, textarea {
-            width: 100%; padding: 0.7rem 1rem;
-            border: 1.5px solid var(--border); border-radius: 8px;
-            font-size: 0.9rem; font-family: inherit;
-            background: var(--bg); color: var(--text);
-            transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
-        }
-        select:focus, input:focus, textarea:focus {
-            outline: none; border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-        textarea { resize: vertical; min-height: 80px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-        @media (max-width: 700px) {
-            .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
-        }
-        .form-group { margin-bottom: 0.75rem; }
-        .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
-        .chip {
-            padding: 0.45rem 1rem; border: 1.5px solid var(--border);
-            border-radius: 50px; font-size: 0.82rem; font-weight: 500;
-            cursor: pointer; transition: all 0.2s; background: var(--card); user-select: none;
-            color: var(--text);
-        }
-        .chip:hover { border-color: var(--primary); color: var(--primary); }
-        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn {
-            padding: 0.75rem 1.75rem; border: none; border-radius: 8px;
-            font-size: 0.9rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; font-family: inherit;
-            display: inline-flex; align-items: center; gap: 0.5rem;
-        }
-        .btn-primary { background: var(--gradient); color: white; box-shadow: 0 4px 14px rgba(26,115,232,0.4); }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,115,232,0.5); }
-        .btn-primary:active { transform: translateY(0); }
-        .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
-        .btn-secondary:hover { background: var(--border); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #059669; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
-        .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
-        .generate-section { text-align: center; margin: 1.5rem 0; }
-        .result-area { display: none; }
-        .result-area.visible { display: block; }
-        .result-block {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); margin-bottom: 1rem;
-            overflow: hidden; box-shadow: var(--shadow-sm);
-        }
-        .result-header {
-            background: var(--bg); padding: 0.75rem 1.25rem;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
-        .result-header h3 { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
-        .result-content { padding: 1.25rem; white-space: pre-wrap; font-size: 0.88rem; line-height: 1.7; color: var(--text); }
-        .copy-btn {
-            padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px;
-            background: var(--card); border: 1px solid var(--border);
-            cursor: pointer; font-weight: 500; transition: all 0.2s; font-family: inherit;
-            color: var(--text);
-        }
-        .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-        .copy-btn.copied { background: var(--success); color: white; border-color: var(--success); }
-        .hashtag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 1rem 1.25rem; }
-        .hashtag { background: var(--primary-light); color: var(--primary); padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; }
-        .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.25rem; overflow-x: auto; }
-        .tab {
-            padding: 0.7rem 1.1rem; font-size: 0.82rem; font-weight: 600;
-            color: var(--text-secondary); cursor: pointer;
-            border-bottom: 2px solid transparent; margin-bottom: -2px;
-            white-space: nowrap; transition: all 0.2s;
-        }
-        .tab:hover { color: var(--primary); }
-        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-        .history-item {
-            padding: 0.75rem 1rem; border: 1px solid var(--border);
-            border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer;
-            transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;
-        }
-        .history-item:hover { background: var(--primary-light); border-color: var(--primary); }
-        .history-item .meta { font-size: 0.78rem; color: var(--text-secondary); }
-        .history-item .title { font-size: 0.88rem; font-weight: 500; }
-        .loading { display: none; text-align: center; padding: 2rem; }
-        .loading.visible { display: block; }
-        .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .counter { text-align: center; padding: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
-        .toast {
-            position: fixed; bottom: 2rem; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #1e293b; color: white; padding: 0.75rem 1.5rem;
-            border-radius: 8px; font-size: 0.85rem; font-weight: 500;
-            z-index: 1000; transition: transform 0.3s ease; box-shadow: var(--shadow-lg);
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-        .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 0.75rem; }
-        .template-card {
-            padding: 0.9rem; border: 1.5px solid var(--border); border-radius: 10px;
-            text-align: center; cursor: pointer; transition: all 0.2s; background: var(--card);
-        }
-        .template-card:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-        .template-card .emoji { font-size: 1.4rem; margin-bottom: 0.3rem; }
-        .template-card .name { font-size: 0.8rem; font-weight: 600; }
-        .template-card .desc { font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.15rem; }
-        .footer { text-align: center; padding: 2rem 1rem; color: var(--text-secondary); font-size: 0.8rem; }
-        .footer a { color: var(--primary); text-decoration: none; }
-        .schedule-item {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;
-            display: flex; gap: 1rem; align-items: flex-start; transition: all 0.2s;
-        }
-        .schedule-item:hover { box-shadow: var(--shadow-md); }
-        .schedule-item .sch-time {
-            background: var(--primary-light); color: var(--primary);
-            padding: 0.5rem 0.75rem; border-radius: 8px; text-align: center;
-            min-width: 80px; font-weight: 600; font-size: 0.82rem;
-        }
-        .schedule-item .sch-time .day { font-size: 0.7rem; font-weight: 500; }
-        .schedule-item .sch-content { flex: 1; }
-        .schedule-item .sch-content .sch-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
-        .schedule-item .sch-content .sch-preview { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
-        .schedule-item .sch-actions { display: flex; gap: 0.4rem; align-items: center; }
-        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; }
-        .badge-pending { background: #fef3c7; color: #92400e; }
-        .badge-published { background: #d1fae5; color: #065f46; }
-        .badge-failed { background: #fee2e2; color: #991b1b; }
-        .settings-section { margin-bottom: 1.5rem; }
-        .settings-section h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .status-dot.connected { background: var(--success); }
-        .status-dot.disconnected { background: var(--danger); }
-        .info-box {
-            background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-            padding: 1rem; font-size: 0.82rem; color: #1e40af; line-height: 1.5; margin-bottom: 1rem;
-        }
-        [data-theme="dark"] .info-box { background: #1e3a5f; border-color: #2563eb; color: #93c5fd; }
-        .info-box a { color: #1d4ed8; }
-        [data-theme="dark"] .info-box a { color: #60a5fa; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
-        .stat-card .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
-        .stat-card .stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; }
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;
-        }
-        .modal-overlay.visible { display: flex; }
-        .modal {
-            background: var(--card); border-radius: var(--radius); padding: 1.5rem;
-            max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-        }
-        .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-        .modal .close-modal {
-            position: absolute; top: 1rem; right: 1rem; background: none;
-            border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);
-        }
-        /* Preview */
-        .preview-phone {
-            background: var(--card); border: 2px solid var(--border); border-radius: 20px;
-            max-width: 380px; margin: 0 auto; overflow: hidden; box-shadow: var(--shadow-lg);
-        }
-        .preview-header {
-            display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .preview-avatar {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: var(--gradient); display: flex; align-items: center;
-            justify-content: center; color: white; font-size: 0.8rem; font-weight: 700;
-        }
-        .preview-username { font-weight: 600; font-size: 0.85rem; }
-        .preview-image {
-            width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, var(--primary-light), var(--border));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; color: var(--primary);
-        }
-        .preview-caption {
-            padding: 0.75rem 1rem; font-size: 0.82rem; line-height: 1.5;
-            max-height: 150px; overflow-y: auto; white-space: pre-wrap;
-        }
-        .preview-hashtags { padding: 0 1rem 0.75rem; font-size: 0.78rem; color: var(--primary); line-height: 1.6; }
-        .char-counter {
-            font-size: 0.75rem; color: var(--text-secondary); text-align: right;
-            margin-top: 0.25rem;
-        }
-        .char-counter.warning { color: var(--warning); }
-        .char-counter.danger { color: var(--danger); font-weight: 600; }
-        /* Topic chips */
-        .topic-chips {
-            display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;
-        }
-        .topic-chip {
-            padding: 0.3rem 0.7rem; border: 1px solid var(--border);
-            border-radius: 50px; font-size: 0.75rem; cursor: pointer;
-            background: var(--card); color: var(--text-secondary);
-            transition: all 0.2s; user-select: none;
-        }
-        .topic-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Prompts v5 - Ferreira.Eletrotech</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x26A1;</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap');
+:root {
+  --gold: #f5c400; --gold-dim: rgba(245,196,0,.12); --gold-border: rgba(245,196,0,.2);
+  --blue: #00b8ff; --blue-dim: rgba(0,184,255,.12); --blue-border: rgba(0,184,255,.2);
+  --green: #50d282; --green-dim: rgba(80,210,130,.12); --green-border: rgba(80,210,130,.2);
+  --red: #ff5050; --red-dim: rgba(255,80,80,.12); --red-border: rgba(255,80,80,.2);
+  --purple: #b464ff; --purple-dim: rgba(180,100,255,.12); --purple-border: rgba(180,100,255,.2);
+  --bg: #0f0f0f; --bg2: #111; --bg3: #141414; --bg4: #0d0d0d;
+  --border: #1e1e1e; --border2: #222; --border3: #1a1a1a;
+  --text: #ddd; --text2: #aaa; --text3: #666; --text4: #444; --text5: #333;
+  --card: #141414; --radius: 14px;
+}
+[data-theme="light"] {
+  --bg: #f5f5f5; --bg2: #fff; --bg3: #fff; --bg4: #f9f9f9;
+  --border: #e0e0e0; --border2: #d0d0d0; --border3: #eee;
+  --text: #222; --text2: #555; --text3: #888; --text4: #aaa; --text5: #ccc;
+  --card: #fff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; transition: background .3s, color .3s; }
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 20px 16px 14px; text-align: center; position: relative; }
+.brand { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 4px; color: var(--text); }
+.brand span { color: var(--gold); }
+.sub { font-size: 10px; color: var(--text4); letter-spacing: 3px; text-transform: uppercase; margin-top: 3px; }
+.header .top-bar { position: absolute; top: 12px; right: 16px; display: flex; gap: 8px; align-items: center; }
+.header .version { background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.theme-toggle { background: rgba(255,255,255,.08); border: 1px solid var(--border2); color: var(--text2); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.theme-toggle:hover { background: rgba(255,255,255,.15); }
+[data-theme="light"] .theme-toggle { background: rgba(0,0,0,.05); border-color: #ddd; }
+.date-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--bg4); border-bottom: 1px solid var(--border3); }
+.date-txt { font-size: 11px; color: var(--text4); letter-spacing: 1px; text-transform: uppercase; }
+.date-txt strong { color: var(--text3); }
+.day-badge { background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); border-radius: 20px; padding: 3px 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; background: var(--bg2); }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 12px 16px; font-size: 11px; font-weight: 600; color: var(--text4); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; letter-spacing: 1px; text-transform: uppercase; }
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.container { max-width: 800px; margin: 0 auto; padding: 0; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.controls { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.section-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text4); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 14px; border: 1px solid var(--border2); border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .2s; background: var(--bg3); color: var(--text3); letter-spacing: .5px; user-select: none; }
+.chip:hover { border-color: var(--gold-border); color: var(--gold); }
+.chip.active { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.form-group { flex: 1; min-width: 140px; }
+.form-group label { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text4); font-weight: 600; margin-bottom: 5px; }
+.sel { width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); border-radius: 10px; padding: 10px 12px; font-size: 12px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color .2s; -webkit-appearance: none; }
+.sel:focus { border-color: var(--gold); }
+input[type="text"], input[type="password"], input[type="url"], textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); border-radius: 10px; padding: 10px 12px; font-size: 12px; font-family: 'Inter', sans-serif; outline: none; transition: border-color .2s;
+}
+input:focus, textarea:focus { border-color: var(--gold); }
+textarea { resize: vertical; min-height: 80px; }
+.gen-btn { width: 100%; background: linear-gradient(135deg, #1a1400, #2a2000); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 14px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.gen-btn:hover:not(:disabled) { background: linear-gradient(135deg, #2a2000, #3a2d00); box-shadow: 0 0 20px rgba(245,196,0,.15); }
+.gen-btn:disabled { opacity: .5; cursor: not-allowed; }
+[data-theme="light"] .gen-btn { background: linear-gradient(135deg, #fff8e0, #fff3c4); }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(245,196,0,.3); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; display: none; flex-shrink: 0; }
+.loading .spinner { display: block; }
+.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.results { padding: 0 14px 14px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text5); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-txt { font-size: 13px; line-height: 1.8; }
+.empty-txt strong { color: var(--text3); }
+.prompt-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; animation: fadeIn .4s ease; }
+.pc-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border3); }
+.pc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pc-num { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px; color: var(--text5); }
+.pc-format { font-size: 10px; color: var(--text4); letter-spacing: 1px; text-transform: uppercase; }
+.pc-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.b-info { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-border); }
+.b-elec { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.b-edu { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+.b-viral { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+.b-marca { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); }
+.pc-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--text); line-height: 1.1; }
+.pc-desc { padding: 10px 16px 12px; font-size: 12px; color: var(--text3); line-height: 1.5; border-bottom: 1px solid var(--border3); }
+.section-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text5); padding: 8px 16px 5px; font-weight: 600; }
+.prompt-body { background: var(--bg4); padding: 12px 16px 14px; font-size: 12px; color: #6a9cb8; line-height: 1.8; font-family: 'Courier New', monospace; border-left: 3px solid #1a3555; word-break: break-word; white-space: pre-wrap; }
+.legenda-body { background: rgba(10,10,10,.5); padding: 10px 16px 12px; font-size: 12px; color: #556a50; line-height: 1.7; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; border-left: 3px solid #1a3010; }
+[data-theme="light"] .prompt-body { background: #f0f7ff; color: #2a6090; border-left-color: #a0c8e8; }
+[data-theme="light"] .legenda-body { background: #f0f7f0; color: #3a6a30; border-left-color: #a0d890; }
+.section-label.leg { background: rgba(10,10,10,.3); border-top: 1px solid var(--border3); }
+.pc-foot { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border3); flex-wrap: wrap; }
+.copy-btn { flex: 1; min-width: 90px; background: rgba(255,255,255,.04); border: 1px solid var(--border2); color: var(--text3); border-radius: 8px; padding: 8px; font-size: 10px; font-weight: 700; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all .15s; font-family: 'Inter', sans-serif; }
+.copy-btn:hover { background: rgba(255,255,255,.08); color: var(--text2); }
+.copy-btn.ok { background: var(--green-dim); color: var(--green); border-color: var(--green-border); }
+.save-btn { background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); border-radius: 8px; padding: 8px 14px; font-size: 10px; font-weight: 700; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all .15s; font-family: 'Inter', sans-serif; }
+.save-btn:hover { background: rgba(245,196,0,.18); }
+.save-btn.saved { color: #ffd740; background: rgba(245,196,0,.22); }
+.action-bar { display: flex; gap: 8px; padding: 0 14px 14px; flex-wrap: wrap; justify-content: center; }
+.action-btn { background: rgba(255,255,255,.04); border: 1px solid var(--border2); color: var(--text3); border-radius: 10px; padding: 10px 18px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; letter-spacing: .5px; }
+.action-btn:hover { background: rgba(255,255,255,.08); color: var(--text2); border-color: var(--text4); }
+.action-btn.primary { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
+.action-btn.primary:hover { background: rgba(245,196,0,.2); }
+.loading-anim { text-align: center; padding: 40px 20px; }
+.loading-anim .l-icon { font-size: 36px; display: inline-block; animation: spin 1.2s linear infinite; }
+.loading-anim p { font-size: 13px; color: var(--text4); margin-top: 14px; line-height: 1.8; }
+.templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 14px 16px; }
+.template-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all .2s; }
+.template-card:hover { border-color: var(--gold-border); background: var(--gold-dim); transform: translateY(-2px); }
+.template-card .emoji { font-size: 1.6rem; margin-bottom: 6px; }
+.template-card .name { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: .5px; }
+.template-card .desc { font-size: 10px; color: var(--text4); margin-top: 3px; }
+.calendar-grid { display: grid; gap: 10px; padding: 14px 16px; }
+.cal-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; gap: 14px; align-items: flex-start; transition: all .2s; }
+.cal-item:hover { border-color: var(--gold-border); }
+.cal-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.cal-info { flex: 1; }
+.cal-day { font-weight: 700; font-size: 13px; color: var(--gold); margin-bottom: 3px; }
+.cal-tema { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.cal-hook { font-size: 12px; color: var(--text2); font-weight: 500; }
+.cal-topic { font-size: 10px; color: var(--text4); margin-top: 3px; }
+.hist-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 0 16px 10px; cursor: pointer; transition: all .2s; display: flex; justify-content: space-between; align-items: center; }
+.hist-item:hover { border-color: var(--gold-border); }
+.hist-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 3px; }
+.hist-meta { font-size: 10px; color: var(--text4); }
+.hist-actions { display: flex; gap: 6px; }
+.saved-section { padding: 14px 16px; }
+.saved-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text4); margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.saved-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin: 14px 16px; padding: 20px; }
+.settings-card h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.settings-card .info-box { background: var(--blue-dim); border: 1px solid var(--blue-border); border-radius: 10px; padding: 12px 14px; font-size: 11px; color: var(--blue); line-height: 1.6; margin-bottom: 14px; }
+.settings-card .form-group { margin-bottom: 12px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.btn-sm { padding: 8px 14px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all .15s; font-family: 'Inter', sans-serif; border: 1px solid; }
+.btn-gold { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
+.btn-gold:hover { background: rgba(245,196,0,.2); }
+.btn-blue { background: var(--blue-dim); border-color: var(--blue-border); color: var(--blue); }
+.btn-blue:hover { background: rgba(0,184,255,.2); }
+.btn-red { background: var(--red-dim); border-color: var(--red-border); color: var(--red); }
+.btn-red:hover { background: rgba(255,80,80,.2); }
+.btn-green { background: var(--green-dim); border-color: var(--green-border); color: var(--green); }
+.btn-green:hover { background: rgba(80,210,130,.2); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.status-dot.on { background: var(--green); }
+.status-dot.off { background: var(--red); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding: 14px 16px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+.stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gold); letter-spacing: 2px; }
+.stat-label { font-size: 10px; color: var(--text4); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--gold); color: #000; padding: 10px 20px; border-radius: 10px; font-size: 12px; font-weight: 700; z-index: 1000; transition: transform .3s ease; letter-spacing: 1px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.footer { text-align: center; padding: 20px; font-size: 10px; color: var(--text5); letter-spacing: 1px; }
+.footer a { color: var(--gold); text-decoration: none; }
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+  .form-group { min-width: 100%; }
+  .templates-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
 </head>
 <body>
-
 <div class="header">
-    <div class="top-bar">
-        <div class="version">v2.1</div>
-        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar tema">🌙</button>
-    </div>
-    <h1>⚡ Gerador de Prompts para Instagram</h1>
-    <p>Crie, agende e publique conteudo profissional automaticamente</p>
-    <div class="brand">@ferreira.eletrotech - Ferreira Solucoes</div>
+  <div class="top-bar">
+    <div class="version">v5.0</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Alternar tema">&#9790;</button>
+  </div>
+  <div class="brand">FERREIRA.<span>ELETROTECH</span></div>
+  <div class="sub">Gerador de Prompts com IA &middot; @ferreira.eletrotech</div>
 </div>
-
+<div class="date-bar">
+  <div class="date-txt">Hoje: <strong id="today-date">&mdash;</strong></div>
+  <div class="day-badge" id="day-badge">&mdash;</div>
+</div>
 <div class="container">
-    <div class="tabs" id="mainTabs">
-        <div class="tab active" data-tab="generator">Gerar Prompt</div>
-        <div class="tab" data-tab="templates">Templates</div>
-        <div class="tab" data-tab="calendar">Calendario</div>
-        <div class="tab" data-tab="schedule">Agendar Posts</div>
-        <div class="tab" data-tab="history">Historico</div>
-        <div class="tab" data-tab="settings">Configuracoes</div>
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" data-tab="gerador">Gerador</div>
+    <div class="tab" data-tab="templates">Templates</div>
+    <div class="tab" data-tab="calendario">Calendario</div>
+    <div class="tab" data-tab="historico">Historico</div>
+    <div class="tab" data-tab="config">Config</div>
+  </div>
+  <div class="tab-content active" id="tab-gerador">
+    <div class="controls">
+      <div class="section-title">Formato do Post</div>
+      <div class="chip-group" id="formatGroup">
+        <div class="chip active" data-value="post_1x1">Post 1:1</div>
+        <div class="chip" data-value="reels_9x16">Reels 9:16</div>
+        <div class="chip" data-value="stories">Stories</div>
+        <div class="chip" data-value="carrossel">Carrossel</div>
+      </div>
+      <div class="section-title">Categoria</div>
+      <div class="chip-group" id="catGroup">
+        <div class="chip active" data-value="automatico">&#127922; Auto</div>
+        <div class="chip" data-value="informatica">&#128187; Info</div>
+        <div class="chip" data-value="eletrica">&#9889; Eletrica</div>
+        <div class="chip" data-value="educacional">&#128218; Edu</div>
+        <div class="chip" data-value="viral">&#128293; Viral</div>
+        <div class="chip" data-value="marca">&#127919; Marca</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tom de Voz</label>
+          <select class="sel" id="sel-tom">
+            <option value="profissional">Profissional</option>
+            <option value="informal" selected>Informal e Acessivel</option>
+            <option value="educativo">Educativo e Didatico</option>
+            <option value="urgente">Urgente / CTA forte</option>
+            <option value="humoristico">Humoristico</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantidade</label>
+          <select class="sel" id="sel-qtd">
+            <option value="1">1 prompt</option>
+            <option value="3" selected>3 prompts</option>
+            <option value="5">5 prompts</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tema Especifico (opcional)</label>
+        <input type="text" id="tema-custom" placeholder="Ex: troca de SSD em notebook, quadro eletrico antigo...">
+      </div>
+      <button class="gen-btn" id="gen-btn" onclick="gerar()">
+        <div class="spinner"></div>
+        <span class="btn-text">&#10022; GERAR PROMPTS COM IA</span>
+      </button>
     </div>
-
-    <!-- TAB: Generator -->
-    <div id="tab-generator">
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#dbeafe;color:#2563eb;">📱</div>Tipo de Postagem</div>
-            <div class="chip-group" id="postType">
-                <div class="chip active" data-value="feed">Feed</div>
-                <div class="chip" data-value="reels">Reels</div>
-                <div class="chip" data-value="carrossel">Carrossel</div>
-                <div class="chip" data-value="stories">Stories</div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#fef3c7;color:#d97706;">📂</div>Categoria do Conteudo</div>
-            <div class="chip-group" id="category">
-                <div class="chip active" data-value="educacional">Educacional</div>
-                <div class="chip" data-value="dica">Dica Rapida</div>
-                <div class="chip" data-value="bastidores">Bastidores</div>
-                <div class="chip" data-value="antes_depois">Antes e Depois</div>
-                <div class="chip" data-value="promocional">Promocional</div>
-                <div class="chip" data-value="depoimento">Depoimento</div>
-                <div class="chip" data-value="curiosidade">Curiosidade</div>
-                <div class="chip" data-value="tendencia">Tendencia</div>
-                <div class="chip" data-value="humor">Humor/Meme</div>
-                <div class="chip" data-value="motivacional">Motivacional</div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#d1fae5;color:#059669;">⚙️</div>Detalhes da Postagem</div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Tom de Voz</label>
-                    <select id="tone">
-                        <option value="profissional">Profissional e Tecnico</option>
-                        <option value="informal" selected>Informal e Acessivel</option>
-                        <option value="motivacional">Motivacional</option>
-                        <option value="humoristico">Humoristico</option>
-                        <option value="educativo">Educativo e Didatico</option>
-                        <option value="urgente">Urgente / CTA forte</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Servico em Destaque</label>
-                    <select id="service" onchange="updateTopicSuggestions()">
-                        <option value="geral">Geral (todos os servicos)</option>
-                        <optgroup label="Eletrica">
-                            <option value="instalacao_eletrica">Instalacao Eletrica</option>
-                            <option value="manutencao">Manutencao Preventiva</option>
-                            <option value="iluminacao">Iluminacao e LED</option>
-                            <option value="quadro_eletrico">Quadro Eletrico</option>
-                            <option value="cabeamento">Cabeamento Estruturado</option>
-                            <option value="energia_solar">Energia Solar</option>
-                            <option value="automacao">Automacao Residencial</option>
-                            <option value="cameras">Cameras e Seguranca</option>
-                            <option value="ar_condicionado">Ar Condicionado</option>
-                            <option value="aterramento">Aterramento e Para-raio</option>
-                        </optgroup>
-                        <optgroup label="Computadores e TI">
-                            <option value="montagem_pc">Montagem de Computadores</option>
-                            <option value="manutencao_pc">Manutencao de Computadores</option>
-                            <option value="redes">Redes e Wi-Fi</option>
-                            <option value="formatacao">Formatacao e Software</option>
-                            <option value="notebook">Notebook e Perifericos</option>
-                        </optgroup>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Tema / Assunto Especifico</label>
-                <select id="topicSelect" onchange="onTopicSelectChange()">
-                    <option value="">Aleatorio (escolha automatica)</option>
-                </select>
-                <div class="topic-chips" id="topicChips"></div>
-                <input type="text" id="topicCustom" placeholder="Ou digite um tema personalizado..." style="margin-top:0.5rem;display:none;">
-            </div>
-            <div class="form-group">
-                <label>Publico-Alvo</label>
-                <select id="audience">
-                    <option value="residencial" selected>Clientes Residenciais</option>
-                    <option value="comercial">Clientes Comerciais/Empresas</option>
-                    <option value="condominio">Condominios</option>
-                    <option value="profissionais">Outros Profissionais da Area</option>
-                    <option value="gamers">Gamers e Entusiastas de PC</option>
-                    <option value="geral">Publico Geral</option>
-                </select>
-            </div>
-        </div>
-        <div class="generate-section">
-            <button class="btn btn-primary" onclick="generatePrompts()" id="generateBtn">⚡ Gerar Prompts Automaticamente</button>
-        </div>
-        <div class="loading" id="loading"><div class="spinner"></div><p>Gerando prompts personalizados...</p></div>
-        <div class="result-area" id="results"></div>
+    <div class="results" id="results">
+      <div class="empty-state">
+        <div class="empty-icon">&#10022;</div>
+        <div class="empty-txt">Selecione as opcoes e clique em<br><strong>GERAR PROMPTS COM IA</strong><br>para criar conteudo de alta performance.</div>
+      </div>
     </div>
-
-    <!-- TAB: Templates -->
-    <div id="tab-templates" style="display:none">
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#ede9fe;color:#7c3aed;">⚡</div>Templates Prontos - Clique para Gerar</div>
-            <div class="templates-grid" id="templatesGrid"></div>
-        </div>
+    <div class="saved-section" id="saved-section" style="display:none">
+      <div class="saved-title">Salvos</div>
+      <div id="saved-list"></div>
     </div>
-
-    <!-- TAB: Calendar -->
-    <div id="tab-calendar" style="display:none">
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#fce7f3;color:#db2777;">📅</div>Calendario Semanal de Conteudo</div>
-            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Sugestao de postagens para cada dia da semana, otimizado para engajamento.</p>
-            <button class="btn btn-primary" onclick="generateCalendar()">📅 Gerar Calendario Semanal</button>
-            <div id="calendarResult" style="margin-top:1rem;"></div>
-        </div>
+  </div>
+  <div class="tab-content" id="tab-templates">
+    <div style="padding:14px 16px 6px"><div class="section-title">Templates Rapidos - Clique para Gerar</div></div>
+    <div class="templates-grid" id="templatesGrid"></div>
+  </div>
+  <div class="tab-content" id="tab-calendario">
+    <div style="padding:14px 16px 6px">
+      <div class="section-title">Calendario Semanal de Conteudo</div>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6;">Sugestao otimizada de postagens para cada dia da semana.</p>
     </div>
-
-    <!-- TAB: Schedule -->
-    <div id="tab-schedule" style="display:none">
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Agendados</div></div>
-            <div class="stat-card"><div class="stat-value" id="stat-pending">0</div><div class="stat-label">Pendentes</div></div>
-            <div class="stat-card"><div class="stat-value" id="stat-published">0</div><div class="stat-label">Publicados</div></div>
-            <div class="stat-card"><div class="stat-value" id="stat-failed">0</div><div class="stat-label">Falharam</div></div>
-        </div>
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#dbeafe;color:#2563eb;">📋</div>Fila de Postagens Agendadas</div>
-            <div id="scheduleList"><p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum post agendado. Gere um prompt e clique em "Agendar Post"!</p></div>
-        </div>
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#d1fae5;color:#059669;">➕</div>Agendar Novo Post Manualmente</div>
-            <div class="form-group">
-                <label>Legenda do Post</label>
-                <textarea id="manualCaption" placeholder="Cole aqui a legenda do seu post..."></textarea>
-            </div>
-            <div class="form-grid-3">
-                <div class="form-group"><label>Data</label><input type="date" id="scheduleDate"></div>
-                <div class="form-group"><label>Hora</label><input type="time" id="scheduleTime" value="10:00"></div>
-                <div class="form-group"><label>URL da Imagem</label><input type="url" id="scheduleImage" placeholder="https://..."></div>
-            </div>
-            <div class="form-group">
-                <label>Hashtags</label>
-                <input type="text" id="scheduleHashtags" placeholder="#eletricista #ferreiraeletrotech ...">
-            </div>
-            <button class="btn btn-primary" onclick="addToSchedule()">📅 Adicionar a Fila</button>
-        </div>
+    <div style="padding:0 16px 10px">
+      <button class="gen-btn" onclick="generateCalendar()" style="max-width:300px">&#128197; Gerar Calendario Semanal</button>
     </div>
-
-    <!-- TAB: History -->
-    <div id="tab-history" style="display:none">
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#f0fdf4;color:#16a34a;">📋</div>Historico de Prompts Gerados</div>
-            <div id="historyList"><p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum prompt gerado ainda.</p></div>
-        </div>
+    <div class="calendar-grid" id="calendarResult"></div>
+  </div>
+  <div class="tab-content" id="tab-historico">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div style="padding:14px 16px 6px"><div class="section-title">Historico de Prompts Gerados</div></div>
+    <div id="historyList"><div class="empty-state"><div class="empty-txt">Nenhum prompt gerado ainda.</div></div></div>
+    <div style="padding:10px 16px;text-align:center;" id="clearHistBtn">
+      <button class="btn-sm btn-red" onclick="clearHistory()">Limpar Historico</button>
     </div>
-
-    <!-- TAB: Settings -->
-    <div id="tab-settings" style="display:none">
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#fef3c7;color:#d97706;">⚙️</div>Configuracoes da API do Instagram</div>
-            <div class="info-box">
-                <strong>Como conectar sua conta do Instagram para postagem automatica:</strong><br><br>
-                <strong>Passo a passo:</strong><br>
-                1. Converta sua conta para <a href="https://help.instagram.com/502981923235522" target="_blank">Conta Profissional</a> (Comercial ou Criador de Conteudo)<br>
-                2. Acesse <a href="https://developers.facebook.com/apps/" target="_blank">Meta for Developers</a> e crie um app<br>
-                3. Ative o produto "Instagram" no seu app<br>
-                4. Use o <strong>Business Login for Instagram</strong> para obter permissoes:<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;<code>instagram_business_basic</code> e <code>instagram_business_content_publish</code><br>
-                5. Gere um <strong>Access Token</strong> de longa duracao<br>
-                6. Obtenha seu <strong>Instagram Business Account ID</strong><br><br>
-                Cole os dados abaixo para ativar a publicacao automatica direto pelo Instagram.
-            </div>
-            <div class="settings-section">
-                <h4>🔗 Status da Conexao: <span class="status-dot disconnected" id="statusDot"></span> <span id="statusText" style="font-weight:400;font-size:0.82rem;color:var(--text-secondary);">Desconectado</span></h4>
-                <div class="form-group">
-                    <label>Instagram Business Account ID</label>
-                    <input type="text" id="igAccountId" placeholder="Ex: 17841400123456789">
-                </div>
-                <div class="form-group">
-                    <label>Access Token (Instagram Graph API)</label>
-                    <input type="password" id="igAccessToken" placeholder="Token de acesso longo...">
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Salvar Configuracoes</button>
-                    <button class="btn btn-secondary btn-sm" onclick="testConnection()">🔍 Testar Conexao</button>
-                    <button class="btn btn-danger btn-sm" onclick="clearSettings()">🗑️ Limpar</button>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title"><div class="icon" style="background:#ede9fe;color:#7c3aed;">🕐</div>Horarios Otimos para Postagem</div>
-            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;">Baseado em estudos de engajamento no Instagram Brasil:</p>
-            <div style="display:grid;gap:0.5rem;">
-                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;background:var(--bg);border-radius:8px;">
-                    <span style="font-weight:600;min-width:120px;font-size:0.85rem;">Segunda a Sexta</span>
-                    <span style="font-size:0.85rem;">11h-13h e 19h-21h</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;background:var(--bg);border-radius:8px;">
-                    <span style="font-weight:600;min-width:120px;font-size:0.85rem;">Sabado</span>
-                    <span style="font-size:0.85rem;">10h-12h</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;background:var(--bg);border-radius:8px;">
-                    <span style="font-weight:600;min-width:120px;font-size:0.85rem;">Domingo</span>
-                    <span style="font-size:0.85rem;">17h-19h</span>
-                </div>
-            </div>
-        </div>
+  </div>
+  <div class="tab-content" id="tab-config">
+    <div class="settings-card">
+      <h3>&#129302; Configuracao da IA</h3>
+      <div class="info-box">Escolha o provedor de IA e insira sua chave de API. A chave fica salva apenas no seu navegador (localStorage).</div>
+      <div class="form-group">
+        <label>Provedor</label>
+        <select class="sel" id="cfg-provider" onchange="onProviderChange()">
+          <option value="groq">Groq (Llama 3.3 70B - Rapido)</option>
+          <option value="gemini">Google Gemini</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Chave da API</label>
+        <input type="password" id="cfg-apikey" placeholder="Cole sua chave aqui...">
+      </div>
+      <div class="form-group" id="modelGroup">
+        <label>Modelo</label>
+        <select class="sel" id="cfg-model">
+          <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+          <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+          <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn-sm btn-gold" onclick="saveApiConfig()">Salvar Config</button>
+        <button class="btn-sm btn-blue" onclick="testApiConfig()">Testar Conexao</button>
+        <button class="btn-sm btn-red" onclick="clearApiConfig()">Limpar</button>
+      </div>
+      <div id="apiStatus" style="margin-top:10px;font-size:11px;color:var(--text4);"></div>
     </div>
-
-    <div class="footer">Feito para <a href="https://www.instagram.com/ferreira.eletrotech" target="_blank">@ferreira.eletrotech</a> - Ferreira Solucoes | v2.1</div>
+    <div class="settings-card">
+      <h3>&#128247; Instagram API (Publicacao Automatica)</h3>
+      <div class="info-box">Conecte sua conta profissional do Instagram para publicar posts diretamente.</div>
+      <div class="form-group">
+        <label><span class="status-dot off" id="igStatusDot"></span> Status: <span id="igStatusText">Desconectado</span></label>
+      </div>
+      <div class="form-group">
+        <label>Instagram Business Account ID</label>
+        <input type="text" id="igAccountId" placeholder="Ex: 17841400123456789">
+      </div>
+      <div class="form-group">
+        <label>Access Token (Instagram Graph API)</label>
+        <input type="password" id="igAccessToken" placeholder="Token de acesso longo...">
+      </div>
+      <div class="btn-row">
+        <button class="btn-sm btn-gold" onclick="saveIgConfig()">Salvar</button>
+        <button class="btn-sm btn-blue" onclick="testIgConnection()">Testar Conexao</button>
+        <button class="btn-sm btn-red" onclick="clearIgConfig()">Limpar</button>
+      </div>
+    </div>
+    <div class="settings-card">
+      <h3>&#128337; Horarios Otimos para Postagem</h3>
+      <div style="display:grid;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg4);border-radius:8px;">
+          <span style="font-weight:700;min-width:110px;font-size:11px;color:var(--gold);">Seg a Sex</span>
+          <span style="font-size:11px;color:var(--text2);">11h-13h e 19h-21h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg4);border-radius:8px;">
+          <span style="font-weight:700;min-width:110px;font-size:11px;color:var(--gold);">Sabado</span>
+          <span style="font-size:11px;color:var(--text2);">10h-12h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg4);border-radius:8px;">
+          <span style="font-weight:700;min-width:110px;font-size:11px;color:var(--gold);">Domingo</span>
+          <span style="font-size:11px;color:var(--text2);">17h-19h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Feito para <a href="https://www.instagram.com/ferreira.eletrotech" target="_blank">@ferreira.eletrotech</a> &middot; Ferreira.Eletrotech &middot; v5.0</div>
 </div>
-
-<!-- Modal: Schedule Post -->
-<div class="modal-overlay" id="scheduleModal">
-    <div class="modal" style="position:relative;">
-        <button class="close-modal" onclick="closeScheduleModal()">&times;</button>
-        <h2>📅 Agendar Postagem</h2>
-        <div class="form-grid">
-            <div class="form-group"><label>Data</label><input type="date" id="modalDate"></div>
-            <div class="form-group"><label>Hora</label><input type="time" id="modalTime" value="11:00"></div>
-        </div>
-        <div class="form-group">
-            <label>URL da Imagem (obrigatoria para publicacao automatica)</label>
-            <input type="url" id="modalImage" placeholder="https://sua-imagem.com/post.jpg">
-        </div>
-        <div class="form-group">
-            <label>Legenda</label>
-            <textarea id="modalCaption" style="min-height:120px;" oninput="updateModalCharCounter()"></textarea>
-            <div class="char-counter" id="modalCharCounter">0 / 2.200 caracteres</div>
-        </div>
-        <div class="form-group">
-            <label>Hashtags</label>
-            <input type="text" id="modalHashtags">
-        </div>
-        <div class="btn-group" style="justify-content:flex-end;">
-            <button class="btn btn-secondary" onclick="closeScheduleModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="confirmSchedule()">📅 Agendar</button>
-            <button class="btn btn-success" onclick="publishNow()">🚀 Publicar Agora</button>
-        </div>
-    </div>
-</div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-// =========================================================
-// DATA & CONFIGURATION
-// =========================================================
+var DIAS = ['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'];
+var MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+var MESES_FULL = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var DIAS_FULL = ['domingo','segunda-feira','terca-feira','quarta-feira','quinta-feira','sexta-feira','sabado'];
+var saved = JSON.parse(localStorage.getItem('fe_saved') || '[]');
+var historyList = JSON.parse(localStorage.getItem('fe_history') || '[]');
+var currentCards = [];
+var genCount = parseInt(localStorage.getItem('fe_gencount') || '0');
 
-const BRAND = {
-    name: "Ferreira Solucoes",
-    handle: "@ferreira.eletrotech",
-    nicho: "Eletrotecnica, Solucoes Eletricas, Computadores e Tecnologia",
-    slogan: "Solucoes eletricas e tecnologia com seguranca e qualidade"
+var temasPorTipo = {
+  informatica: [
+    "montagem de PC gamer do zero com pecas espalhadas na bancada - caixa aberta, cabos soltos, placa-mae fora do gabinete",
+    "troca de SSD M.2 NVMe em notebook Dell Inspiron com painel traseiro removido e parafusos organizados",
+    "limpeza de cooler de notebook com pasta termica ressecada e cinza - visivel entre o cobre e o chip",
+    "diagnostico de placa-mae com multimetro digital - ponteiras nas trilhas, resistores queimados visiveis",
+    "encaixe delicado de pente de RAM DDR4 Kingston no slot de notebook Samsung",
+    "tela LCD trincada de notebook sendo substituida - display novo ao lado, vidro estilhacado no pano",
+    "pendrive bootavel com Windows 11 na porta USB enquanto barra de instalacao avanca na tela",
+    "HD de 500GB e SSD Kingston de 240GB lado a lado - tamanhos, pesos e estruturas internas em contraste",
+    "saida de ventilacao de notebook entupida de po - termometro infravermelho mostrando 87 graus C",
+    "PC desktop aberto com fonte testada por chave de fenda no conector PS_ON enquanto voltimetro mede 12V",
+    "pincel antiestatico limpando heatsink de CPU com po denso saindo em nuvem sob luz de bancada",
+    "pinca de precisao reconectando cabo flex de 0.5mm de tela de notebook - trabalho delicadissimo",
+    "tela do CrystalDiskInfo mostrando HD com status Caution - setores realocados em vermelho",
+    "RTX 3060 sendo extraida do slot PCIe com cuidado - conector de energia desconectado primeiro",
+    "ferro de solda aquecido aplicando estanho em ponto de solda fria na placa-mae com flux dourado",
+    "conector de bateria de notebook sendo reconectado apos troca - bateria inchada antiga ao lado",
+    "remocao de malware com Malwarebytes - barra de progresso e lista de ameacas encontradas na tela",
+    "substituicao de teclado de notebook - membrana antiga levantada, novo teclado pronto para encaixar",
+    "pasta termica Arctic MX-6 sendo aplicada em cruz no chip de CPU antes de remontar o cooler",
+    "gabinete de PC com gerenciamento de cabos perfeito - feixes organizados com abracadeiras"
+  ],
+  eletrica: [
+    "quadro eletrico residencial antigo com fios cruzados e sem identificacao sendo reorganizado",
+    "disjuntor Schneider queimado com marca de arco eletrico preta sendo removido com chave isolada",
+    "instalacao de tomada 20A para ar-condicionado em parede de alvenaria - caixa de embutir aberta",
+    "fio de aluminio antigo e quebradico sendo substituido por cobre 2.5mm em residencia dos anos 70",
+    "DPS Intelbras sendo instalado nos trilhos do quadro eletrico antes dos disjuntores",
+    "tomada ABNT com pinos derretidos e plastico marrom queimado - dano visivel por sobrecarga",
+    "eletroduto corrugado passando por parede de alvenaria com furo feito com furadeira de impacto",
+    "spots de LED embutidos no forro de gesso de sala de estar em Saquarema sendo instalados",
+    "multimetro Minipa com ponteiras em tomada residencial - display mostrando 127.3V com iluminacao lateral",
+    "quadro eletrico de casa de praia com corrosao branca nas barras de cobre pela maresia de Saquarema",
+    "haste de aterramento de cobre sendo cravada com marreta no solo umido do quintal",
+    "parede de cozinha escurecida em volta de tomada - sinal claro de curto-circuito por sobrecarga",
+    "chuveiro eletrico Lorenzetti sendo instalado com fio 4mm amarelo-verde de aterramento conectado",
+    "quadro eletrico novo com fios identificados por cores, organizados com abracadeiras - trabalho finalizado",
+    "disjuntor DIN de 1970 sendo trocado por modelo IEC moderno Schneider - os dois juntos para comparar",
+    "interruptor simples com fio neutro conectado incorretamente - erro comum sendo corrigido",
+    "instalacao de ventilador de teto com controle remoto em quarto de casa simples",
+    "cabo PP 3x2.5mm sendo passado sob rodape com grampos plasticos ate tomada nova",
+    "medicao de corrente com alicate amperimetro no fio fase do quadro - display mostrando amperes reais",
+    "eletroduto de PVC rigido sendo dobrado com curvador manual para contornar parede de tijolo"
+  ],
+  educacional: [
+    "fio 1.5mm e fio 2.5mm cortados transversalmente lado a lado - diferenca de espessura do cobre visivel",
+    "corte transversal de notebook mostrando pasta termica ressecada entre CPU e heatsink de cobre",
+    "cinco fios eletricos com isolamento colorido organizados por cor: preto, vermelho, branco, verde, azul - NBR 5410",
+    "regua de disjuntores com um deles visivelmente aquecido ao termometro infravermelho - sobrecarga explicada",
+    "HD aberto mostrando prato magnetico giratorio vs SSD com chips NAND expostos - anatomia dos dois",
+    "disjuntor desmontado com mola, contatos e mecanismo de desarme expostos para visualizacao didatica",
+    "barra de RAM DDR4 e o que acontece quando ela fica cheia - analogia visual com gavetas",
+    "quadro eletrico com identificacao de fase, neutro e terra explicados com setas e labels coloridos",
+    "notebook com temperatura normal e notebook com pasta seca - termometro infravermelho comparando os dois",
+    "tomada com e sem aterramento - diferenca no pino terra e o que significa para a seguranca",
+    "velocidade de boot: HD marcando 2min40s vs SSD marcando 9s - cronometro ao lado de cada um",
+    "capacitor inchado em placa-mae comparado com capacitor saudavel - sinal de defeito explicado",
+    "fio eletrico subdimensionado aquecendo vs fio correto frio - termometro comparando os dois"
+  ],
+  viral: [
+    "flat-lay de todo o po retirado de dentro de notebook de 4 anos - quantidade chocante num papel branco",
+    "notebook Lenovo que cliente disse esse nao tem mais jeito funcionando com tela nova exibindo Windows limpo",
+    "quadro eletrico residencial mais caotico ja atendido - fios de todas as cores amarrados com fita isolante",
+    "tomada de cozinha com plastico completamente fundido - aparencia de ter derretido de verdade",
+    "PC gamer: lado esquerdo da foto com pecas na caixa, lado direito com setup montado e RGB ligado",
+    "casa em Saquarema com fiacao de 1984 totalmente modernizada - quadro antigo e novo lado a lado",
+    "tela de notebook trincada em queda - 45 minutos depois funcionando perfeitamente com display novo",
+    "HD com erro critico e dados que estavam perdidos para sempre recuperados e listados na tela",
+    "antes: quadro com fios amarrados com fita e sem disjuntor - depois: quadro organizado e identificado",
+    "notebook completamente desmontado em 47 pecas sobre bancada - tudo numerado e organizado",
+    "limpeza de PC com ar comprimido - nuvem de po saindo do gabinete capturada em foto dramatica",
+    "cliente pegando o notebook que foi dado como perdido - expressao de alivio capturada naturalmente",
+    "tomada que so faiscava um pouquinho desmontada revelando cobre completamente oxidado por dentro",
+    "PC que nao ligava mais funcionando apos troca de capacitor de R$2,00 na placa-mae",
+    "instalacao eletrica improvisada encontrada em casa - extensao como fiacao permanente embutida na parede"
+  ],
+  marca: [
+    "tecnico autonomo chegando de moto em casa de cliente em Saquarema com maleta de ferramentas",
+    "bancada de trabalho organizada a luz de LED azul - multimetro, solda, chaves, pincas alinhadas",
+    "maos calejadas de tecnico segurando alicate amperimetro na frente de quadro eletrico aberto",
+    "tecnico e cliente olhando juntos para notebook funcionando apos conserto - satisfacao real",
+    "flat-lay de todas as ferramentas: chaves Philips, alicate de bico, multimetro, pasta termica, ferro de solda",
+    "tecnico de costas trabalhando em quadro eletrico - luz de trabalho iluminando o interior do quadro",
+    "mao com luva isolante tocando em disjuntor - detalhe de seguranca e profissionalismo",
+    "bancada de informatica com gabinete aberto e luz azul interna do PC iluminando o rosto concentrado do tecnico"
+  ]
 };
 
-const HASHTAGS = {
-    gerais: ["#eletricista", "#eletrotecnica", "#eletrica", "#instalacaoeletrica", "#ferreiraeletrotech", "#ferreirasoluções", "#servicoseletricos", "#eletricidade", "#eletricidaderesidencial", "#profissionaleletricista"],
-    instalacao: ["#instalacaoeletrica", "#fiacao", "#tomadas", "#interruptores", "#quadrodedistribuicao", "#reformaeletrica"],
-    manutencao: ["#manutencaoeletrica", "#manutencaopreventiva", "#segurancaeletrica", "#laudo", "#nr10", "#vistoriaeletrica"],
-    iluminacao: ["#iluminacao", "#led", "#luminotecnica", "#iluminacaoresidencial", "#projetoluminotecnico", "#fitaled", "#spotled"],
-    energia_solar: ["#energiasolar", "#painelsolar", "#sustentabilidade", "#energialimpa", "#fotovoltaica", "#economiaenergia"],
-    automacao: ["#automacaoresidencial", "#casainteligente", "#smarthome", "#domotica", "#alexa", "#googlehome"],
-    cameras: ["#cftv", "#cameras", "#segurancaeletronica", "#monitoramento", "#vigilancia"],
-    montagem_pc: ["#montagempc", "#pcgamer", "#hardware", "#setupgamer", "#computador", "#processador", "#placadevideo", "#tecnologia", "#pcbuild"],
-    manutencao_pc: ["#manutencaopc", "#assistenciatecnica", "#computador", "#formatacao", "#limpezapc", "#pastatermica", "#upgradehardware", "#tecnologia"],
-    redes: ["#redes", "#wifi", "#internet", "#roteador", "#cabeamentored", "#redeempresarial", "#ti", "#infraestruturaderede"],
-    formatacao: ["#formatacao", "#windows", "#software", "#antivirus", "#backup", "#sistemaoperacional", "#ti"],
-    notebook: ["#notebook", "#perifericos", "#teclado", "#monitor", "#mouse", "#acessorios", "#tecnologia"],
-    engajamento: ["#dicasdeeletrica", "#vocesabia", "#eletricistaprofissional", "#obrasresidenciais", "#construcao", "#reforma", "#arquitetura", "#dicasdetecnologia", "#informatica"]
-};
-
-const HOOKS = {
-    educacional: [
-        "Voce sabia que {tema} pode ser perigoso se feito de forma errada?",
-        "Muita gente nao sabe, mas {tema} eh essencial para sua seguranca.",
-        "3 coisas que todo mundo deveria saber sobre {tema}:",
-        "Erro GRAVE que 90% das pessoas cometem com {tema}",
-        "Se voce tem {tema} em casa, PRECISA ver isso!",
-        "A verdade sobre {tema} que ninguem te conta",
-        "Pare tudo e veja isso sobre {tema}!",
-        "Nao faca isso NUNCA quando o assunto eh {tema}!",
-        "O que voce NAO sabe sobre {tema} pode te prejudicar",
-        "5 sinais de que voce precisa de ajuda com {tema}"
-    ],
-    dica: [
-        "DICA DE OURO: {tema}",
-        "Salva esse post! Dica rapida sobre {tema}",
-        "Em 30 segundos voce vai aprender sobre {tema}",
-        "Anota essa dica sobre {tema}!",
-        "Uma dica simples que vai mudar sua vida: {tema}",
-        "TOP 3 dicas sobre {tema} que voce precisa saber",
-        "Essa dica sobre {tema} vale ouro!",
-        "Se eu soubesse disso antes sobre {tema}..."
-    ],
-    bastidores: [
-        "Olha so o que encontramos hoje no servico...",
-        "Dia a dia na vida de um profissional de {tema}",
-        "Mais um dia, mais um trabalho perfeito!",
-        "Bastidores de como fazemos {tema}",
-        "Acompanhe essa transformacao completa!",
-        "Um dia normal aqui na oficina: {tema}",
-        "Rotina de trabalho: {tema} na pratica",
-        "Voce nao imagina o que a gente encontra por ai..."
-    ],
-    antes_depois: [
-        "ANTES e DEPOIS impressionante de {tema}",
-        "Voce nao vai acreditar na diferenca! {tema}",
-        "Transformacao completa: {tema}",
-        "De um desastre a perfeicao: {tema}",
-        "O resultado ficou incrivel! Confira: {tema}",
-        "Olha a diferenca que um profissional faz: {tema}",
-        "Arraste para o lado e veja a transformacao!"
-    ],
-    promocional: [
-        "OFERTA ESPECIAL em {tema}! So essa semana.",
-        "Quer resolver {tema}? A Ferreira Solucoes tem a resposta!",
-        "Servico profissional de {tema} com garantia.",
-        "Chame agora no WhatsApp e faca seu orcamento de {tema}!",
-        "Nao deixe para depois! {tema} com preco justo.",
-        "Condicoes imperdíveis para {tema}!",
-        "Promocao relampago: {tema} com desconto especial",
-        "Orcamento gratis! Aproveite: {tema}"
-    ],
-    depoimento: [
-        "Mais um cliente satisfeito! Veja o que disseram sobre {tema}:",
-        "A opiniao dos nossos clientes eh o que mais importa.",
-        "Confianca se constroi com resultado. Olha esse feedback!",
-        "Cliente feliz = trabalho bem feito!",
-        "Nada melhor do que ver o sorriso do cliente!",
-        "O melhor pagamento eh a satisfacao do cliente"
-    ],
-    curiosidade: [
-        "Voce sabia? {tema} - um fato que vai te surpreender!",
-        "CURIOSIDADE: Por que {tema}?",
-        "Isso pode te impressionar: {tema}",
-        "Fato curioso sobre {tema} que pouca gente sabe",
-        "99% das pessoas nao sabem isso sobre {tema}",
-        "Mito ou verdade: {tema}?"
-    ],
-    tendencia: [
-        "TENDENCIA {ano}: {tema} esta mudando tudo!",
-        "O futuro ja chegou: {tema}",
-        "Essa novidade em {tema} vai revolucionar o mercado!",
-        "As principais tendencias em {tema} para esse ano",
-        "O que vem por ai: {tema} em {ano}",
-        "A tecnologia que vai dominar: {tema}"
-    ],
-    humor: [
-        "POV: voce chama um tecnico e descobre {tema}",
-        "Profissional vs. Cliente: a eterna batalha de {tema}",
-        "Quando o cliente diz que 'ja tentou resolver sozinho' {tema}",
-        "Coisas que so tecnico entende: {tema}",
-        "Ninguem: ... | Eu chegando no servico: {tema}",
-        "O cliente: 'eh coisa simples' | O servico: {tema}",
-        "Se tecnico tivesse 1 real pra cada vez que..."
-    ],
-    motivacional: [
-        "Cada projeto realizado eh um sonho concretizado.",
-        "Profissionalismo nao eh opcao, eh obrigacao.",
-        "A excelencia nao eh um ato, eh um habito.",
-        "Seguranca em primeiro lugar, sempre!",
-        "Transformando desafios em solucoes brilhantes.",
-        "O sucesso vem do trabalho bem feito, dia apos dia.",
-        "Nao existe atalho para a qualidade.",
-        "Compromisso com o cliente acima de tudo."
-    ]
-};
-
-const CTAS = [
-    "Salve esse post para consultar depois!",
-    "Marque alguem que precisa ver isso!",
-    "Comente aqui sua duvida que eu respondo!",
-    "Curtiu? Compartilhe com quem precisa!",
-    "Precisa de ajuda? Chama no Direct ou WhatsApp!",
-    "Quer um orcamento? Link na bio!",
-    "Deixe um comentario! Qual sua duvida?",
-    "Siga @ferreira.eletrotech para mais dicas!",
-    "Ja teve algum problema assim? Conta aqui!",
-    "Compartilhe com quem esta construindo ou reformando!",
-    "Envie para aquele amigo que precisa ver!",
-    "Curta se voce concorda! Comente se tem duvida!",
-    "Manda no grupo da familia!",
-    "Salva + compartilha = ajuda mais gente!",
-    "Me siga para conteudo diario sobre eletrica e tecnologia!"
+var angulos = [
+  "extreme close-up macro shot","overhead bird's-eye flat-lay","eye-level 45-degree angle",
+  "low-angle looking up","side profile shot","three-quarter view","over-the-shoulder POV",
+  "wide establishing shot","split-screen before/after","dramatic single-light side lighting"
+];
+var moods = [
+  "clinical workshop fluorescent light","warm golden side lamp","cool blue LED strip backlight",
+  "dramatic single overhead spotlight","natural window light from left","dual softbox studio",
+  "moody underlit dark atmosphere","harsh top-down work light","cinematic backlit silhouette"
 ];
 
-const EMOJIS = {
-    instalacao_eletrica: "🔌", manutencao: "🔧", iluminacao: "💡",
-    quadro_eletrico: "📦", cabeamento: "🔗", energia_solar: "☀️",
-    automacao: "🏠", cameras: "📹", ar_condicionado: "❄️",
-    aterramento: "⚡", geral: "⚡",
-    montagem_pc: "🖥️", manutencao_pc: "💻", redes: "🌐",
-    formatacao: "💿", notebook: "📱"
+var CALENDAR_THEMES = {
+  segunda: { tema: "Motivacional / Comeco de semana", emoji: "\uD83D\uDCAA", cats: ["marca","educacional"] },
+  terca: { tema: "Dica Tecnica / Informatica", emoji: "\uD83D\uDCBB", cats: ["informatica","educacional"] },
+  quarta: { tema: "Eletrica / Bastidores", emoji: "\u26A1", cats: ["eletrica","educacional"] },
+  quinta: { tema: "Curiosidade / Voce Sabia?", emoji: "\uD83E\uDDE0", cats: ["educacional","viral"] },
+  sexta: { tema: "Antes e Depois / Case", emoji: "\u2728", cats: ["viral","eletrica"] },
+  sabado: { tema: "Computadores / Tecnologia", emoji: "\uD83D\uDDA5\uFE0F", cats: ["informatica","viral"] },
+  domingo: { tema: "Marca / Prova Social", emoji: "\u2B50", cats: ["marca","viral"] }
 };
 
-const SERVICE_NAMES = {
-    geral: "solucoes eletricas e tecnologia",
-    instalacao_eletrica: "instalacao eletrica",
-    manutencao: "manutencao eletrica",
-    iluminacao: "iluminacao e LED",
-    quadro_eletrico: "quadro eletrico",
-    cabeamento: "cabeamento estruturado",
-    energia_solar: "energia solar",
-    automacao: "automacao residencial",
-    cameras: "cameras e seguranca",
-    ar_condicionado: "ar condicionado",
-    aterramento: "aterramento e para-raio",
-    montagem_pc: "montagem de computadores",
-    manutencao_pc: "manutencao de computadores",
-    redes: "redes e Wi-Fi",
-    formatacao: "formatacao e software",
-    notebook: "notebook e perifericos"
-};
-
-const TOPICS_BY_SERVICE = {
-    geral: ["instalacao eletrica", "seguranca eletrica", "economia de energia", "manutencao preventiva", "montagem de computadores", "manutencao de PCs", "redes Wi-Fi"],
-    instalacao_eletrica: ["troca de fiacao", "instalacao de tomadas", "circuitos dedicados", "disjuntores", "fiacao antiga", "ponto de energia novo", "tomada de 3 pinos", "instalacao embutida vs. aparente"],
-    manutencao: ["revisao do quadro eletrico", "teste de aterramento", "inspecao de fios", "manutencao preventiva", "laudo eletrico", "troca de disjuntor queimado", "curto-circuito"],
-    iluminacao: ["fita LED", "spot de embutir", "iluminacao de destaque", "luminaria inteligente", "projeto luminotecnico", "lampada quente vs. fria", "sensor de presenca"],
-    quadro_eletrico: ["organizacao do quadro", "troca de disjuntores", "DPS", "dimensionamento correto", "quadro de distribuicao", "identificacao de circuitos"],
-    cabeamento: ["rede estruturada", "cabeamento Cat6", "rack", "infraestrutura de TI", "pontos de rede", "passagem de cabos", "certificacao de rede"],
-    energia_solar: ["paineis fotovoltaicos", "economia na conta de luz", "payback", "instalacao de placas", "inversor solar", "energia solar residencial", "energia solar para empresas"],
-    automacao: ["interruptores inteligentes", "assistentes de voz", "cenarios automatizados", "cortinas automaticas", "tomadas WiFi", "lampadas inteligentes", "fechadura digital"],
-    cameras: ["cameras IP", "DVR/NVR", "monitoramento remoto", "camera com IA", "cerca eletronica", "alarme residencial", "camera para comercio"],
-    ar_condicionado: ["instalacao de split", "manutencao de ar", "BTU correto", "eficiencia energetica", "limpeza de filtro", "ar condicionado inverter", "economia com ar condicionado"],
-    aterramento: ["malha de aterramento", "para-raio", "SPDA", "protecao contra surtos", "DPS", "aterramento TT", "norma NBR 5419"],
-    montagem_pc: ["montagem de PC gamer", "escolha do processador ideal", "placa de video", "memoria RAM", "SSD vs HDD", "fonte de alimentacao", "gabinete com airflow", "cooler e refrigeracao", "setup completo", "PC para trabalho e estudo", "PC custo-beneficio", "RGB e estetica"],
-    manutencao_pc: ["limpeza interna do PC", "troca de pasta termica", "upgrade de hardware", "PC lento e travando", "troca de HD para SSD", "diagnostico de problemas", "superaquecimento", "fonte queimada", "memoria com defeito", "backup de dados", "tela azul (BSOD)", "barulho no computador"],
-    redes: ["instalacao de roteador", "rede Wi-Fi mesh", "cabeamento de rede", "configuracao de switch", "rede empresarial", "repetidor de sinal", "Wi-Fi lento", "seguranca de rede", "IP fixo vs. DHCP", "rede para home office"],
-    formatacao: ["formatacao Windows", "instalacao de drivers", "remocao de virus", "backup antes de formatar", "programas essenciais", "licenca do Windows", "otimizacao do sistema", "Linux vs Windows", "recuperacao de dados"],
-    notebook: ["troca de tela de notebook", "teclado de notebook", "bateria de notebook", "upgrade de RAM no notebook", "limpeza de notebook", "escolha de perifericos", "monitor externo", "dock station", "SSD no notebook", "notebook para trabalho"]
-};
-
-const QUICK_TEMPLATES = [
-    { emoji: "💡", name: "Dica do Dia", desc: "Dica rapida e util", category: "dica", type: "feed", tone: "informal" },
-    { emoji: "⚠️", name: "Alerta Seguranca", desc: "Riscos eletricos", category: "educacional", type: "carrossel", tone: "urgente" },
-    { emoji: "🔧", name: "Bastidores", desc: "Dia a dia no trabalho", category: "bastidores", type: "reels", tone: "informal" },
-    { emoji: "✨", name: "Antes e Depois", desc: "Transformacoes", category: "antes_depois", type: "carrossel", tone: "profissional" },
-    { emoji: "💰", name: "Promocao", desc: "Oferta de servico", category: "promocional", type: "feed", tone: "urgente" },
-    { emoji: "⭐", name: "Depoimento", desc: "Cliente satisfeito", category: "depoimento", type: "stories", tone: "informal" },
-    { emoji: "🧠", name: "Voce Sabia?", desc: "Curiosidade", category: "curiosidade", type: "reels", tone: "educativo" },
-    { emoji: "🚀", name: "Tendencia", desc: "Novidades do setor", category: "tendencia", type: "carrossel", tone: "profissional" },
-    { emoji: "😂", name: "Meme Tecnico", desc: "Humor do dia", category: "humor", type: "reels", tone: "humoristico" },
-    { emoji: "💪", name: "Motivacional", desc: "Inspiracao", category: "motivacional", type: "feed", tone: "motivacional" },
-    { emoji: "☀️", name: "Energia Solar", desc: "Posts sobre solar", category: "educacional", type: "carrossel", tone: "educativo", service: "energia_solar" },
-    { emoji: "🏠", name: "Casa Inteligente", desc: "Automacao", category: "dica", type: "reels", tone: "informal", service: "automacao" },
-    { emoji: "🖥️", name: "Montagem PC", desc: "PCs e hardware", category: "educacional", type: "carrossel", tone: "educativo", service: "montagem_pc" },
-    { emoji: "💻", name: "Manut. PC", desc: "Conserto e upgrade", category: "dica", type: "reels", tone: "informal", service: "manutencao_pc" },
-    { emoji: "🌐", name: "Redes Wi-Fi", desc: "Internet e redes", category: "dica", type: "feed", tone: "educativo", service: "redes" },
-    { emoji: "💿", name: "Formatacao", desc: "Software e sistema", category: "educacional", type: "carrossel", tone: "educativo", service: "formatacao" }
+var QUICK_TEMPLATES = [
+  { emoji: "\uD83D\uDCA1", name: "Dica do Dia", cat: "educacional", format: "post_1x1", tom: "educativo" },
+  { emoji: "\u26A0\uFE0F", name: "Alerta Seguranca", cat: "educacional", format: "carrossel", tom: "urgente" },
+  { emoji: "\uD83D\uDD27", name: "Bastidores", cat: "eletrica", format: "reels_9x16", tom: "informal" },
+  { emoji: "\u2728", name: "Antes e Depois", cat: "viral", format: "carrossel", tom: "profissional" },
+  { emoji: "\uD83D\uDCB0", name: "Promocao", cat: "marca", format: "post_1x1", tom: "urgente" },
+  { emoji: "\u2B50", name: "Depoimento", cat: "marca", format: "stories", tom: "informal" },
+  { emoji: "\uD83E\uDDE0", name: "Voce Sabia?", cat: "educacional", format: "reels_9x16", tom: "educativo" },
+  { emoji: "\uD83D\uDE80", name: "Tendencia", cat: "educacional", format: "carrossel", tom: "profissional" },
+  { emoji: "\uD83D\uDE02", name: "Meme Tecnico", cat: "viral", format: "reels_9x16", tom: "humoristico" },
+  { emoji: "\uD83D\uDCAA", name: "Motivacional", cat: "marca", format: "post_1x1", tom: "profissional" },
+  { emoji: "\uD83D\uDDA5\uFE0F", name: "Montagem PC", cat: "informatica", format: "carrossel", tom: "educativo" },
+  { emoji: "\uD83D\uDCBB", name: "Manut. PC", cat: "informatica", format: "reels_9x16", tom: "informal" },
+  { emoji: "\uD83C\uDF10", name: "Redes Wi-Fi", cat: "informatica", format: "post_1x1", tom: "educativo" },
+  { emoji: "\uD83D\uDCBF", name: "Formatacao", cat: "informatica", format: "carrossel", tom: "educativo" },
+  { emoji: "\u2600\uFE0F", name: "Energia Solar", cat: "eletrica", format: "carrossel", tom: "educativo" },
+  { emoji: "\uD83C\uDFE0", name: "Casa Inteligente", cat: "eletrica", format: "reels_9x16", tom: "informal" }
 ];
 
-const CALENDAR_THEMES = {
-    segunda: { tema: "Motivacional / Comeco de semana", emoji: "💪", cat: "motivacional" },
-    terca: { tema: "Dica Tecnica / Educacional", emoji: "📚", cat: "educacional" },
-    quarta: { tema: "Bastidores / Dia a dia", emoji: "🔧", cat: "bastidores" },
-    quinta: { tema: "Curiosidade / Voce Sabia", emoji: "🧠", cat: "curiosidade" },
-    sexta: { tema: "Antes e Depois / Case", emoji: "✨", cat: "antes_depois" },
-    sabado: { tema: "Computadores / Tecnologia", emoji: "🖥️", cat: "dica" },
-    domingo: { tema: "Depoimento / Prova Social", emoji: "⭐", cat: "depoimento" }
-};
-
-// =========================================================
-// UTILITY FUNCTIONS
-// =========================================================
-
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function randomItems(arr, count) { return [...arr].sort(() => 0.5 - Math.random()).slice(0, count); }
-function getSelectedChip(groupId) {
-    const active = document.getElementById(groupId)?.querySelector('.chip.active');
-    return active ? active.dataset.value : null;
-}
+function escHtml(t) { return t ? t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+function shuffleArr(arr) { return arr.slice().sort(function() { return Math.random() - .5; }); }
 function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
-function copyText(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-        if (btn) { btn.textContent = 'Copiado!'; btn.classList.add('copied'); }
-        showToast('Copiado!');
-        if (btn) setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
-    });
+function getActiveChip(groupId) {
+  var el = document.getElementById(groupId);
+  if (!el) return null;
+  var active = el.querySelector('.chip.active');
+  return active ? active.dataset.value : null;
 }
-function escapeHtml(text) { return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
-
-// =========================================================
-// THEME
-// =========================================================
 
 function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : '');
+  document.getElementById('themeBtn').innerHTML = isDark ? '&#9728;' : '&#9790;';
+  localStorage.setItem('fe_theme', isDark ? 'light' : 'dark');
 }
 function loadTheme() {
-    const saved = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    document.getElementById('themeBtn').textContent = saved === 'dark' ? '☀️' : '🌙';
+  var s = localStorage.getItem('fe_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', s === 'light' ? 'light' : '');
+  document.getElementById('themeBtn').innerHTML = s === 'light' ? '&#9728;' : '&#9790;';
 }
 
-// =========================================================
-// TOPIC SUGGESTIONS
-// =========================================================
-
-function updateTopicSuggestions() {
-    const service = document.getElementById('service').value;
-    const topics = TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral;
-    const select = document.getElementById('topicSelect');
-    const chips = document.getElementById('topicChips');
-
-    select.innerHTML = '<option value="">Aleatorio (escolha automatica)</option>';
-    topics.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t; opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-        select.appendChild(opt);
-    });
-    select.innerHTML += '<option value="__custom__">Digitar tema personalizado...</option>';
-
-    chips.innerHTML = topics.slice(0, 8).map(t =>
-        `<span class="topic-chip" onclick="selectTopicChip(this, '${t.replace(/'/g,"\\'")}')">${t}</span>`
-    ).join('');
-
-    document.getElementById('topicCustom').style.display = 'none';
-    document.getElementById('topicCustom').value = '';
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
+  document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.toggle('active', c.id === 'tab-' + name); });
+  if (name === 'historico') renderHistory();
+  if (name === 'config') loadConfigs();
 }
 
-function selectTopicChip(el, topic) {
-    document.querySelectorAll('.topic-chip').forEach(c => { c.style.background = ''; c.style.borderColor = ''; c.style.color = ''; });
-    el.style.background = 'var(--primary-light)';
-    el.style.borderColor = 'var(--primary)';
-    el.style.color = 'var(--primary)';
-    document.getElementById('topicSelect').value = topic;
-    document.getElementById('topicCustom').style.display = 'none';
+function initDate() {
+  var d = new Date();
+  document.getElementById('today-date').textContent = d.getDate() + ' ' + MESES[d.getMonth()] + ' ' + d.getFullYear();
+  document.getElementById('day-badge').textContent = DIAS[d.getDay()];
 }
 
-function onTopicSelectChange() {
-    const val = document.getElementById('topicSelect').value;
-    const customInput = document.getElementById('topicCustom');
-    if (val === '__custom__') {
-        customInput.style.display = 'block';
-        customInput.focus();
+function buildPromptText(tipo, qtd, formato, tom, temaCustom) {
+  var d = new Date();
+  var diaS = DIAS_FULL[d.getDay()];
+  var dataS = d.getDate() + ' de ' + MESES_FULL[d.getMonth()] + ' de ' + d.getFullYear();
+  var formatoLabels = {
+    'post_1x1': 'Post quadrado 1:1 (1080x1080px)',
+    'reels_9x16': 'Reels vertical 9:16 (1080x1920px)',
+    'stories': 'Stories vertical 9:16 (1080x1920px)',
+    'carrossel': 'Carrossel (ate 10 slides, 1080x1080px cada)'
+  };
+  var formatoLabel = formatoLabels[formato] || 'Post quadrado 1:1';
+  var tomDescs = {
+    'profissional': 'Tom profissional e tecnico - linguagem confiante, dados e autoridade',
+    'informal': 'Tom informal e acessivel - como se estivesse conversando com o cliente, linguagem do dia a dia',
+    'educativo': 'Tom educativo e didatico - explicando passo a passo, simples e claro',
+    'urgente': 'Tom urgente com CTA forte - criar senso de urgencia, frases de impacto',
+    'humoristico': 'Tom humoristico - memes, situacoes engracadas do dia a dia do tecnico'
+  };
+  var tomDesc = tomDescs[tom] || 'Tom informal';
+  var tiposDisponiveis;
+  if (tipo === 'automatico') {
+    tiposDisponiveis = ['informatica','informatica','eletrica','eletrica','educacional','viral','marca'];
+  } else {
+    tiposDisponiveis = [];
+    for (var x = 0; x < parseInt(qtd); x++) tiposDisponiveis.push(tipo);
+  }
+  var temasEscolhidos = [];
+  var usados = {};
+  var angulosShuf = shuffleArr(angulos);
+  var moodsShuf = shuffleArr(moods);
+  for (var i = 0; i < parseInt(qtd); i++) {
+    var cat = tiposDisponiveis[i % tiposDisponiveis.length];
+    var lista = temasPorTipo[cat] || temasPorTipo.informatica;
+    if (!usados[cat]) usados[cat] = [];
+    var tema, tentativas = 0;
+    if (temaCustom && temaCustom.trim()) {
+      tema = temaCustom.trim();
     } else {
-        customInput.style.display = 'none';
+      do {
+        tema = lista[Math.floor(Math.random() * lista.length)];
+        tentativas++;
+      } while (usados[cat].indexOf(tema) !== -1 && tentativas < 20);
     }
-    document.querySelectorAll('.topic-chip').forEach(c => {
-        c.style.background = '';
-        c.style.borderColor = '';
-        c.style.color = '';
-    });
+    usados[cat].push(tema);
+    temasEscolhidos.push({ cat: cat, tema: tema, angulo: angulosShuf[i % angulosShuf.length], mood: moodsShuf[i % moodsShuf.length] });
+  }
+  var temasStr = temasEscolhidos.map(function(t, idx) {
+    return 'Prompt ' + (idx + 1) + '\n  - Categoria: ' + t.cat + '\n  - Tema central: "' + t.tema + '"\n  - Angulo obrigatorio: ' + t.angulo + '\n  - Iluminacao/mood obrigatorio: ' + t.mood + '\n  - O prompt deve ser UNICO e diferente dos demais em composicao, profundidade de campo e narrativa visual';
+  }).join('\n\n');
+  return 'Voce e especialista em criacao de prompts fotorrealistas para IA (Midjourney, DALL-E 3, Firefly) e marketing digital para pequenas empresas brasileiras.\n\n' +
+    'EMPRESA: FERREIRA.ELETROTECH\nResponsavel: Ferreira - trabalha SOZINHO, e autonomo, atende tudo ele mesmo pessoalmente\nLocalizacao: Saquarema e Regiao, Rio de Janeiro, Brasil\nServicos: montagem e manutencao de PCs e notebooks, troca de tela/HD/RAM/SSD, formatacao, remocao de virus, recuperacao de dados, solda em placa + eletrica residencial (quadros, tomadas, fiacao, LED, DPS, aterramento, chuveiro, ar-condicionado)\nPublico: moradores de Saquarema, Araruama, Sao Pedro da Aldeia - casas simples de alvenaria, muitas casas de praia antigas com instalacao velha\nIdentidade visual: fundo escuro, azul eletrico (#00b8ff), amarelo/dourado (#f5c400)\n\nData: ' + diaS + ', ' + dataS + '\n\nFORMATO DO POST: ' + formatoLabel + '\nTOM DE VOZ: ' + tomDesc + '\n\nTEMAS PARA GERAR - siga EXATAMENTE cada especificacao:\n' + temasStr + '\n\nREGRAS OBRIGATORIAS PARA TODOS OS PROMPTS:\n1. Prompt em ingles: minimo 130 palavras, fotorrealista, camera/lente especifica (ex: Canon EOS R5, Nikon Z8, Sony A7R V - com mm e abertura), resolucao 8K\n2. Usar o ANGULO e o MOOD especificados - isso e obrigatorio para garantir variedade\n3. Descrever a cena como FOTO REAL de atendimento - detalhar texturas, materiais, marcas visiveis, sujeira, desgaste realista\n4. Marcas reais quando cabivel: Schneider, Intelbras, WEG, Lenovo, Dell, Acer, Samsung, Kingston, Western Digital, Arctic, Lorenzetti\n5. Contexto brasileiro: paredes de alvenaria com textura, azulejo de banheiro, quintal com grama, casas simples\n6. Adaptar composicao ao formato: ' + formatoLabel + '\n\nREGRAS OBRIGATORIAS PARA TODAS AS LEGENDAS:\n7. Linha 1: gancho que para o scroll - frase de impacto, surpresa ou medo saudavel\n8. Linhas 2-4: contexto, dica tecnica ou historia do caso\n9. CTA FINAL: usar APENAS "Chama no direct" OU "Clica no link da bio" - NUNCA "chama no WhatsApp" ou "manda mensagem"\n10. PROIBIDO: "Nossa equipe", "nosso time", "nossa empresa" - Ferreira e AUTONOMO. Usar: "Na Ferreira.Eletrotech", "Aqui eu faco", "Eu resolvo", "Pode contar comigo", "O Ferreira resolve"\n11. TOM: ' + tomDesc + '\n12. Hashtags: #TecnicoSaquarema #EletricistaSaquarema #InformaticaSaquarema #ManutencaoDePC #FerreiraTech #SaquaremaRJ #ConsertoDeNotebook #EletristaResidencial\n\nResponda SOMENTE com JSON puro, sem texto antes nem depois:\n{\n  "prompts": [\n    {\n      "titulo": "titulo criativo em portugues",\n      "categoria": "informatica",\n      "formato": "' + formatoLabel.split(' (')[0] + '",\n      "descricao": "objetivo do post em uma frase",\n      "prompt": "prompt completo em ingles fotorrealista",\n      "legenda": "legenda completa em portugues com emojis, CTA (direct ou link da bio) e hashtags"\n    }\n  ]\n}';
 }
 
-function getSelectedTopic() {
-    const selectVal = document.getElementById('topicSelect').value;
-    if (selectVal === '__custom__') return document.getElementById('topicCustom').value;
-    return selectVal;
+function getApiConfig() {
+  return { provider: localStorage.getItem('fe_provider') || 'groq', apiKey: localStorage.getItem('fe_apikey') || '', model: localStorage.getItem('fe_model') || 'llama-3.3-70b-versatile' };
 }
 
-// =========================================================
-// PROMPT GENERATION ENGINE
-// =========================================================
-
-function generateCaption(postType, category, tone, service, topic, audience) {
-    const serviceName = SERVICE_NAMES[service] || "solucoes eletricas e tecnologia";
-    const emoji = EMOJIS[service] || "⚡";
-    const topics = TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral;
-    const selectedTopic = topic || randomItem(topics);
-    const hooks = HOOKS[category] || HOOKS.educacional;
-    let hook = randomItem(hooks).replace("{tema}", selectedTopic).replace("{ano}", new Date().getFullYear());
-    let body = "";
-    if (postType === "carrossel") body = buildCarouselCaption(category, serviceName, selectedTopic, emoji, tone);
-    else if (postType === "reels") body = buildReelsCaption(category, serviceName, selectedTopic, emoji, tone);
-    else if (postType === "stories") body = buildStoriesCaption(category, serviceName, selectedTopic, emoji, tone);
-    else body = buildFeedCaption(category, serviceName, selectedTopic, emoji, tone);
-    const cta = randomItem(CTAS);
-    return `${emoji} ${hook}\n\n${body}\n\n${cta}\n\n---\n${BRAND.handle} | ${BRAND.slogan}`;
+function callAI(promptText) {
+  var cfg = getApiConfig();
+  if (!cfg.apiKey) return Promise.reject(new Error('Chave de API nao configurada. Va em Config e insira sua chave.'));
+  if (cfg.provider === 'gemini') {
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + cfg.apiKey;
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { temperature: 0.7, responseMimeType: 'application/json' } }) })
+      .then(function(resp) { if (!resp.ok) return resp.json().catch(function() { return {}; }).then(function(err) { throw new Error((err.error && err.error.message) || 'Erro Gemini HTTP ' + resp.status); }); return resp.json(); })
+      .then(function(data) { var raw = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text; if (!raw) throw new Error('Resposta vazia da Gemini'); return JSON.parse(raw); });
+  } else {
+    return fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + cfg.apiKey.trim(), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: cfg.model, messages: [{ role: 'system', content: 'Voce e um assistente que gera apenas respostas em formato JSON puro.' }, { role: 'user', content: promptText }], response_format: { type: 'json_object' }, temperature: 0.7 }) })
+      .then(function(resp) { if (!resp.ok) return resp.json().catch(function() { return {}; }).then(function(err) { throw new Error((err.error && err.error.message) || 'Erro Groq HTTP ' + resp.status); }); return resp.json(); })
+      .then(function(data) { return JSON.parse(data.choices[0].message.content); });
+  }
 }
 
-function buildFeedCaption(category, service, topic, emoji, tone) {
-    const parts = [];
-    if (category === "educacional" || category === "curiosidade") {
-        parts.push(`${emoji} Muitas pessoas nao sabem, mas ${topic} pode impactar diretamente na seguranca da sua casa ou empresa.`);
-        parts.push(`Aqui na ${BRAND.name}, sempre recomendamos que voce consulte um profissional qualificado antes de tomar qualquer decisao sobre ${topic}.`);
-        parts.push(`Alguns pontos importantes:\n• Nunca faca ${topic} sem orientacao profissional\n• Verifique se os materiais estao dentro das normas\n• Seguranca em primeiro lugar, SEMPRE!`);
-    } else if (category === "dica") {
-        parts.push(`Dica valiosa sobre ${topic} que voce precisa saber! ${emoji}`);
-        parts.push(`O segredo eh simples: conte sempre com um profissional habilitado. Na ${BRAND.name}, garantimos qualidade e seguranca em cada servico.`);
-    } else if (category === "promocional") {
-        parts.push(`Estamos com condicoes especiais para ${topic}! ${emoji}`);
-        parts.push(`Na ${BRAND.name}, voce encontra:\n✅ Profissionais qualificados\n✅ Materiais de primeira linha\n✅ Garantia no servico\n✅ Atendimento personalizado`);
-        parts.push(`Nao perca essa oportunidade! Entre em contato agora.`);
-    } else if (category === "motivacional") {
-        parts.push(`Cada projeto que realizamos carrega dedicacao, conhecimento e paixao pelo que fazemos. ${emoji}`);
-        parts.push(`Na ${BRAND.name}, acreditamos que excelencia nao eh apenas fazer bem feito - eh superar expectativas em cada detalhe.`);
-    } else {
-        parts.push(`Mais um trabalho realizado com excelencia pela ${BRAND.name}! ${emoji}`);
-        parts.push(`Quando se trata de ${topic}, confianca e profissionalismo fazem toda a diferenca.`);
-    }
-    return parts.join("\n\n");
+function gerar() {
+  var cfg = getApiConfig();
+  if (!cfg.apiKey) { showToast('Configure sua chave de API em Config primeiro!'); switchTab('config'); return; }
+  var btn = document.getElementById('gen-btn');
+  var tipo = getActiveChip('catGroup') || 'automatico';
+  var formato = getActiveChip('formatGroup') || 'post_1x1';
+  var tom = document.getElementById('sel-tom').value;
+  var qtd = document.getElementById('sel-qtd').value;
+  var temaCustom = document.getElementById('tema-custom').value;
+  var results = document.getElementById('results');
+  btn.disabled = true; btn.classList.add('loading');
+  var providerName = cfg.provider === 'gemini' ? 'Gemini' : 'Groq';
+  results.innerHTML = '<div class="loading-anim"><span class="l-icon">\u27F3</span><p>' + providerName + ' esta processando...<br><span style="color:var(--text4);font-size:11px;">Gerando ' + qtd + ' prompt(s) com IA</span></p></div>';
+  var promptText = buildPromptText(tipo, qtd, formato, tom, temaCustom);
+  callAI(promptText).then(function(parsed) {
+    currentCards = parsed.prompts || [];
+    if (!currentCards.length) throw new Error('Nenhum prompt gerado. Tente novamente.');
+    renderCards(currentCards);
+    genCount++; localStorage.setItem('fe_gencount', String(genCount));
+    historyList.unshift({ date: new Date().toLocaleString('pt-BR'), tipo: tipo, formato: formato, tom: tom, qtd: currentCards.length, cards: JSON.parse(JSON.stringify(currentCards)) });
+    if (historyList.length > 50) historyList.pop();
+    localStorage.setItem('fe_history', JSON.stringify(historyList));
+    btn.disabled = false; btn.classList.remove('loading');
+  }).catch(function(err) {
+    results.innerHTML = '<div style="background:var(--red-dim);border:1px solid var(--red-border);border-radius:12px;padding:16px;font-size:12px;color:var(--red);line-height:1.7;margin:14px"><strong style="font-size:14px;display:block;margin-bottom:6px;">Erro na API</strong>' + escHtml(err.message) + '<br><br><span style="opacity:.7">Verifique sua chave em Config e tente novamente.</span></div>';
+    btn.disabled = false; btn.classList.remove('loading');
+  });
 }
 
-function buildCarouselCaption(category, service, topic, emoji, tone) {
-    const parts = [];
-    parts.push(`Deslize para o lado e confira esse conteudo completo sobre ${topic}! ${emoji}👉`);
-    if (category === "educacional") {
-        parts.push(`Nesse carrossel, voce vai aprender:\n📌 Slide 1: O que eh ${topic}\n📌 Slide 2: Por que eh importante\n📌 Slide 3: Principais erros a evitar\n📌 Slide 4: Como fazer da forma correta\n📌 Slide 5: Quando chamar um profissional\n📌 Slide 6: CTA - Ferreira Solucoes cuida disso pra voce!`);
-    } else if (category === "antes_depois") {
-        parts.push(`Veja a transformacao completa!\n📌 Slides 1-2: Situacao antes (problemas encontrados)\n📌 Slides 3-4: Processo de execucao\n📌 Slides 5-6: Resultado final impecavel!`);
-        parts.push(`Esse eh o padrao ${BRAND.name} de qualidade.`);
-    } else {
-        parts.push(`Conteudo rico sobre ${topic}. Cada slide traz uma informacao essencial para voce!`);
-        parts.push(`Salve esse post para consultar sempre que precisar.`);
-    }
-    return parts.join("\n\n");
+function catBadge(cat) {
+  var m = { informatica: '<span class="badge b-info">Info</span>', eletrica: '<span class="badge b-elec">Eletrica</span>', educacional: '<span class="badge b-edu">Edu</span>', viral: '<span class="badge b-viral">Viral</span>', marca: '<span class="badge b-marca">Marca</span>' };
+  return m[cat] || '<span class="badge b-info">' + escHtml(cat) + '</span>';
 }
 
-function buildReelsCaption(category, service, topic, emoji, tone) {
-    const parts = [];
-    if (category === "bastidores") {
-        parts.push(`🎬 Acompanhe esse servico de ${topic} do inicio ao fim!`);
-        parts.push(`Roteiro sugerido:\n⏱ 0-3s: Gancho forte (mostre o problema)\n⏱ 3-8s: Apresente a situacao\n⏱ 8-20s: Processo de execucao\n⏱ 20-25s: Resultado final\n⏱ 25-30s: CTA + logo`);
-    } else if (category === "humor") {
-        parts.push(`😂 Quem eh da area vai se identificar!`);
-        parts.push(`Roteiro sugerido:\n⏱ 0-2s: Setup (cena do "problema")\n⏱ 2-5s: Expectativa\n⏱ 5-10s: Realidade (momento comico)\n⏱ 10-15s: Reacao + texto final\n🎵 Use uma musica em alta!`);
-    } else if (category === "dica" || category === "educacional") {
-        parts.push(`📱 Reels educativo sobre ${topic} - otimo para viralizar!`);
-        parts.push(`Roteiro sugerido:\n⏱ 0-3s: "Voce sabia que ${topic}...?" (texto na tela)\n⏱ 3-10s: Explicacao visual rapida\n⏱ 10-20s: Demonstracao pratica\n⏱ 20-25s: Resumo dos pontos principais\n⏱ 25-30s: "Siga ${BRAND.handle} para mais dicas!"`);
-    } else {
-        parts.push(`🎥 Confira esse Reels sobre ${topic}!`);
-        parts.push(`Dica: Reels entre 15-30 segundos tem melhor alcance. Use legendas na tela e musica trending!`);
-    }
-    return parts.join("\n\n");
+function renderCards(prompts) {
+  document.getElementById('results').innerHTML = prompts.map(function(p, i) {
+    return '<div class="prompt-card"><div class="pc-header"><div class="pc-meta"><span class="pc-num">PROMPT ' + String(i + 1).padStart(2, '0') + '</span><span class="pc-format">' + escHtml(p.formato || '') + '</span></div><div class="pc-badges">' + catBadge(p.categoria) + '</div><div class="pc-title">' + escHtml(p.titulo || '') + '</div></div><div class="pc-desc">' + escHtml(p.descricao || '') + '</div><div class="section-label">PROMPT PARA IA (INGLES)</div><div class="prompt-body" id="pr-' + i + '">' + escHtml(p.prompt || '') + '</div><div class="section-label leg">LEGENDA PARA INSTAGRAM</div><div class="legenda-body" id="lg-' + i + '">' + escHtml(p.legenda || '') + '</div><div class="pc-foot"><button class="copy-btn" onclick="cp(\'pr-' + i + '\',this,\'Copiar Prompt\')">Copiar Prompt</button><button class="copy-btn" onclick="cp(\'lg-' + i + '\',this,\'Copiar Legenda\')">Copiar Legenda</button><button class="save-btn" id="sv-' + i + '" onclick="saveCard(' + i + ')">Salvar</button></div></div>';
+  }).join('') + '<div class="action-bar"><button class="action-btn primary" onclick="gerar()">Gerar Novamente</button><button class="action-btn" onclick="copyAll()">Copiar Tudo</button><button class="action-btn" onclick="exportAll()">Exportar .txt</button></div>';
 }
 
-function buildStoriesCaption(category, service, topic, emoji, tone) {
-    const parts = [];
-    parts.push(`📱 Sequencia de Stories sobre ${topic}:`);
-    if (category === "depoimento") {
-        parts.push(`Story 1: "Olha o que nosso cliente falou!" (print do depoimento)\nStory 2: Foto/video do servico realizado\nStory 3: Enquete: "Voce ja precisou desse servico?"\nStory 4: CTA com link/WhatsApp`);
-    } else if (category === "dica") {
-        parts.push(`Story 1: Enquete - "Voce sabia disso sobre ${topic}?" (Sim/Nao)\nStory 2: Revelacao da dica com visual atraente\nStory 3: Caixa de perguntas: "Qual sua duvida sobre ${topic}?"\nStory 4: CTA - "Salve esse story!"`);
-    } else {
-        parts.push(`Story 1: Gancho visual sobre ${topic}\nStory 2: Conteudo principal\nStory 3: Interacao (enquete, quiz ou pergunta)\nStory 4: CTA final`);
-    }
-    parts.push(`\n💡 Dica: Use stickers de interacao (enquete, quiz, slider de emoji) para aumentar o engajamento!`);
-    return parts.join("\n\n");
+function cp(id, btn, label) {
+  var t = document.getElementById(id);
+  if (!t) return;
+  navigator.clipboard.writeText(t.innerText).then(function() { btn.textContent = 'Copiado!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = label; btn.classList.remove('ok'); }, 2000); });
 }
 
-function generateHashtags(service, category) {
-    let tags = [];
-    tags.push(...randomItems(HASHTAGS.gerais, 4));
-    tags.push(...randomItems(HASHTAGS.engajamento, 3));
-    const serviceKey = service === "geral" ? "instalacao" : service;
-    if (HASHTAGS[serviceKey]) tags.push(...randomItems(HASHTAGS[serviceKey], 5));
-    else tags.push(...randomItems(HASHTAGS.instalacao, 3));
-    return [...new Set(tags)].slice(0, 15);
-}
-
-function generateImagePrompt(postType, category, service, topic) {
-    const serviceName = SERVICE_NAMES[service] || "solucoes eletricas e tecnologia";
-    const selectedTopic = topic || randomItem(TOPICS_BY_SERVICE[service] || TOPICS_BY_SERVICE.geral);
-    const isPC = ["montagem_pc","manutencao_pc","redes","formatacao","notebook"].includes(service);
-    const colorRef = isPC ? "azul (#1a73e8) e cinza escuro" : "azul (#1a73e8) e branco";
-    const styleRef = isPC ? "tecnologia, circuitos, componentes de hardware" : "eletricidade, fios, ferramentas profissionais";
-    if (postType === "carrossel") {
-        return `Crie um design de carrossel para Instagram (6 slides, 1080x1080px cada) sobre "${selectedTopic}". Estilo: moderno, profissional, com tons de ${colorRef}. Elementos visuais: ${styleRef}. Slide 1: Capa com titulo chamativo. Slides 2-5: Conteudo informativo com icones e texto claro. Slide 6: CTA com logo da Ferreira Solucoes e @ferreira.eletrotech. Use fontes limpas e layout arejado.`;
-    } else if (postType === "reels") {
-        return `Crie uma thumbnail/capa para Reels do Instagram sobre "${selectedTopic}". Resolucao: 1080x1920px (vertical). Estilo: chamativo, com texto grande e bold, cores vibrantes com base em ${colorRef}. Elementos: ${styleRef}. Deve ter um gancho visual forte. Inclua emoji relevante e o @ferreira.eletrotech discretamente.`;
-    } else if (postType === "stories") {
-        return `Crie um design para Stories do Instagram sobre "${selectedTopic}". Resolucao: 1080x1920px. Estilo: moderno e dinamico com tons de ${colorRef}. Elementos: ${styleRef}. Inclua espaco para stickers de interacao. Visual limpo com a marca @ferreira.eletrotech.`;
-    }
-    return `Crie uma imagem profissional para post de Instagram sobre "${selectedTopic}". Estilo: fotografia profissional com tons de ${colorRef}, visual moderno e limpo. Elementos visuais: ${styleRef}. Resolucao: 1080x1080px. A imagem deve transmitir confianca e profissionalismo. Adicione espaco para texto overlay. Marca: Ferreira Solucoes / @ferreira.eletrotech.`;
-}
-
-// =========================================================
-// UI FUNCTIONS
-// =========================================================
-
-let history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
-let scheduledPosts = JSON.parse(localStorage.getItem('scheduledPosts') || '[]');
-
-function generatePrompts() {
-    const postType = getSelectedChip('postType');
-    const category = getSelectedChip('category');
-    const tone = document.getElementById('tone').value;
-    const service = document.getElementById('service').value;
-    const topic = getSelectedTopic();
-    const audience = document.getElementById('audience').value;
-    document.getElementById('loading').classList.add('visible');
-    document.getElementById('results').classList.remove('visible');
-    setTimeout(() => {
-        const caption = generateCaption(postType, category, tone, service, topic, audience);
-        const altCaption = generateCaption(postType, category, tone, service, topic, audience);
-        const hashtags = generateHashtags(service, category);
-        const imagePrompt = generateImagePrompt(postType, category, service, topic);
-        displayResults(caption, altCaption, hashtags, imagePrompt, postType, category, service);
-        saveToHistory(postType, category, service, caption, hashtags);
-        document.getElementById('loading').classList.remove('visible');
-    }, 600);
-}
-
-function displayResults(caption, altCaption, hashtags, imagePrompt, postType, category, service) {
-    const resultsDiv = document.getElementById('results');
-    const typeLabels = { feed:"Feed", reels:"Reels", carrossel:"Carrossel", stories:"Stories" };
-    const catLabels = { educacional:"Educacional", dica:"Dica Rapida", bastidores:"Bastidores", antes_depois:"Antes e Depois", promocional:"Promocional", depoimento:"Depoimento", curiosidade:"Curiosidade", tendencia:"Tendencia", humor:"Humor/Meme", motivacional:"Motivacional" };
-    const hashStr = hashtags.join(' ');
-    const emoji = EMOJIS[service] || "⚡";
-    const captionLen = caption.length;
-    const charClass = captionLen > 2200 ? 'danger' : captionLen > 2000 ? 'warning' : '';
-
-    resultsDiv.innerHTML = `
-        <div style="text-align:center;margin-bottom:1rem;">
-            <span style="background:var(--primary-light);color:var(--primary);padding:0.4rem 1rem;border-radius:50px;font-size:0.82rem;font-weight:600;">
-                ${typeLabels[postType]||postType} | ${catLabels[category]||category}
-            </span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start;" id="resultsGrid">
-            <div>
-                <div class="result-block">
-                    <div class="result-header"><h3>📝 Legenda Principal</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-                    <div class="result-content">${escapeHtml(caption)}</div>
-                    <div class="char-counter ${charClass}" style="padding:0 1.25rem 0.75rem;">${captionLen} / 2.200 caracteres</div>
-                </div>
-                <div class="result-block">
-                    <div class="result-header"><h3>🔄 Legenda Alternativa</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-                    <div class="result-content">${escapeHtml(altCaption)}</div>
-                </div>
-                <div class="result-block">
-                    <div class="result-header"><h3>#️⃣ Hashtags Sugeridas</h3><button class="copy-btn" onclick="copyText('${hashStr.replace(/'/g,"\\'")}',this)">Copiar Todas</button></div>
-                    <div class="hashtag-list">${hashtags.map(h=>`<span class="hashtag">${h}</span>`).join('')}</div>
-                    <div class="counter">${hashtags.length} hashtags</div>
-                </div>
-                <div class="result-block">
-                    <div class="result-header"><h3>🎨 Prompt para Imagem (IA)</h3><button class="copy-btn" onclick="copyText(this.closest('.result-block').querySelector('.result-content').textContent,this)">Copiar</button></div>
-                    <div class="result-content">${escapeHtml(imagePrompt)}</div>
-                </div>
-            </div>
-            <div>
-                <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;color:var(--text-secondary);text-align:center;">Preview do Post</div>
-                <div class="preview-phone">
-                    <div class="preview-header">
-                        <div class="preview-avatar">FS</div>
-                        <div class="preview-username">ferreira.eletrotech</div>
-                    </div>
-                    <div class="preview-image">${emoji}</div>
-                    <div class="preview-caption">${escapeHtml(caption.split('\n---')[0].substring(0, 300))}${caption.split('\n---')[0].length > 300 ? '...' : ''}</div>
-                    <div class="preview-hashtags">${hashStr}</div>
-                </div>
-            </div>
-        </div>
-        <style>@media(max-width:800px){#resultsGrid{grid-template-columns:1fr!important;}}</style>
-        <div class="btn-group" style="justify-content:center;margin-top:1.5rem;">
-            <button class="btn btn-secondary" onclick="generatePrompts()">🔄 Gerar Novamente</button>
-            <button class="btn btn-primary" onclick="openScheduleModal(window._lastCaption,window._lastHashtags)">📅 Agendar Post</button>
-            <button class="btn btn-success" onclick="exportAll()">📥 Exportar</button>
-        </div>`;
-    resultsDiv.classList.add('visible');
-    resultsDiv.scrollIntoView({ behavior:'smooth', block:'start' });
-    window._lastCaption = caption;
-    window._lastHashtags = hashStr;
-    window._lastImagePrompt = imagePrompt;
+function copyAll() {
+  if (!currentCards.length) return;
+  var text = currentCards.map(function(p, i) { return '=== PROMPT ' + (i + 1) + ' ===\nTitulo: ' + (p.titulo || '') + '\nCategoria: ' + (p.categoria || '') + '\nFormato: ' + (p.formato || '') + '\n\nPROMPT (EN):\n' + (p.prompt || '') + '\n\nLEGENDA (PT):\n' + (p.legenda || '') + '\n'; }).join('\n==================================================\n\n');
+  navigator.clipboard.writeText(text).then(function() { showToast('Todos os prompts copiados!'); });
 }
 
 function exportAll() {
-    const c = window._lastCaption || '';
-    const h = window._lastHashtags || '';
-    const ip = window._lastImagePrompt || '';
-    const content = `FERREIRA ELETROTECH - PROMPT GERADO\n${'='.repeat(50)}\n\nLEGENDA:\n${c}\n\nHASHTAGS:\n${h}\n\nPROMPT PARA IMAGEM:\n${ip}\n\n${'='.repeat(50)}\nGerado por Ferreira Eletrotech Prompt Generator v2.1`;
-    const blob = new Blob([content], { type:'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `prompt-ferreira-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    showToast('Arquivo exportado!');
+  if (!currentCards.length) return;
+  var text = 'FERREIRA.ELETROTECH - PROMPTS GERADOS\nData: ' + new Date().toLocaleString('pt-BR') + '\n==================================================\n\n' +
+    currentCards.map(function(p, i) { return '--- PROMPT ' + (i + 1) + ' ---\nTitulo: ' + (p.titulo || '') + '\nCategoria: ' + (p.categoria || '') + '\nFormato: ' + (p.formato || '') + '\nDescricao: ' + (p.descricao || '') + '\n\nPROMPT PARA IA (INGLES):\n' + (p.prompt || '') + '\n\nLEGENDA PARA INSTAGRAM:\n' + (p.legenda || '') + '\n'; }).join('\n==================================================\n\n') +
+    '\n==================================================\nGerado por Ferreira.Eletrotech Prompt Generator v5.0';
+  var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'prompts-ferreira-' + Date.now() + '.txt'; a.click(); URL.revokeObjectURL(a.href);
+  showToast('Arquivo exportado!');
 }
 
-// =========================================================
-// SCHEDULE & PUBLISH
-// =========================================================
-
-function openScheduleModal(caption, hashtags) {
-    document.getElementById('modalCaption').value = caption || '';
-    document.getElementById('modalHashtags').value = hashtags || '';
-    const now = new Date();
-    now.setDate(now.getDate() + 1);
-    document.getElementById('modalDate').value = now.toISOString().split('T')[0];
-    document.getElementById('modalTime').value = '11:00';
-    updateModalCharCounter();
-    document.getElementById('scheduleModal').classList.add('visible');
+function saveCard(i) {
+  var p = currentCards[i]; if (!p) return;
+  var copy = JSON.parse(JSON.stringify(p)); copy.savedAt = new Date().toLocaleString('pt-BR');
+  saved.push(copy); localStorage.setItem('fe_saved', JSON.stringify(saved));
+  renderSaved();
+  var b = document.getElementById('sv-' + i); if (b) { b.textContent = 'Salvo!'; b.classList.add('saved'); }
+  showToast('Prompt salvo!');
 }
 
-function closeScheduleModal() { document.getElementById('scheduleModal').classList.remove('visible'); }
-
-function updateModalCharCounter() {
-    const len = document.getElementById('modalCaption').value.length;
-    const counter = document.getElementById('modalCharCounter');
-    counter.textContent = `${len} / 2.200 caracteres`;
-    counter.className = 'char-counter' + (len > 2200 ? ' danger' : len > 2000 ? ' warning' : '');
+function renderSaved() {
+  var sec = document.getElementById('saved-section'), list = document.getElementById('saved-list');
+  if (!saved.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = saved.map(function(p, i) {
+    return '<div class="hist-item" onclick="showSaved(' + i + ')"><div><div class="hist-title">' + escHtml(p.titulo) + '</div><div class="hist-meta">' + catBadge(p.categoria) + ' &nbsp;' + escHtml(p.savedAt) + '</div></div><div class="hist-actions"><button class="btn-sm btn-red" onclick="event.stopPropagation();removeSaved(' + i + ')" title="Remover">X</button></div></div>';
+  }).join('');
 }
 
-function confirmSchedule() {
-    const date = document.getElementById('modalDate').value;
-    const time = document.getElementById('modalTime').value;
-    const caption = document.getElementById('modalCaption').value;
-    const image = document.getElementById('modalImage').value;
-    const hashtags = document.getElementById('modalHashtags').value;
-    if (!date || !time || !caption) { showToast('Preencha data, hora e legenda!'); return; }
-    scheduledPosts.push({
-        id: Date.now(), date, time, caption, image, hashtags,
-        status: 'pending', createdAt: new Date().toISOString()
-    });
-    saveSchedule();
-    closeScheduleModal();
-    showToast('Post agendado com sucesso!');
-    switchTab('schedule');
-}
-
-function addToSchedule() {
-    const caption = document.getElementById('manualCaption').value;
-    const date = document.getElementById('scheduleDate').value;
-    const time = document.getElementById('scheduleTime').value;
-    const image = document.getElementById('scheduleImage').value;
-    const hashtags = document.getElementById('scheduleHashtags').value;
-    if (!caption || !date || !time) { showToast('Preencha legenda, data e hora!'); return; }
-    scheduledPosts.push({
-        id: Date.now(), date, time, caption, image, hashtags,
-        status: 'pending', createdAt: new Date().toISOString()
-    });
-    saveSchedule();
-    document.getElementById('manualCaption').value = '';
-    showToast('Post adicionado a fila!');
-}
-
-function removeFromSchedule(id) {
-    scheduledPosts = scheduledPosts.filter(p => p.id !== id);
-    saveSchedule();
-    showToast('Post removido da fila.');
-}
-
-function saveSchedule() {
-    localStorage.setItem('scheduledPosts', JSON.stringify(scheduledPosts));
-    renderSchedule();
-}
-
-function renderSchedule() {
-    const list = document.getElementById('scheduleList');
-    const pending = scheduledPosts.filter(p => p.status === 'pending');
-    const published = scheduledPosts.filter(p => p.status === 'published');
-    const failed = scheduledPosts.filter(p => p.status === 'failed');
-    document.getElementById('stat-total').textContent = scheduledPosts.length;
-    document.getElementById('stat-pending').textContent = pending.length;
-    document.getElementById('stat-published').textContent = published.length;
-    document.getElementById('stat-failed').textContent = failed.length;
-    if (scheduledPosts.length === 0) {
-        list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum post agendado. Gere um prompt e clique em "Agendar Post"!</p>';
-        return;
-    }
-    const sorted = [...scheduledPosts].sort((a, b) => {
-        if (a.status === 'pending' && b.status !== 'pending') return -1;
-        if (a.status !== 'pending' && b.status === 'pending') return 1;
-        return new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time);
-    });
-    list.innerHTML = sorted.map(post => {
-        const badgeClass = post.status === 'published' ? 'badge-published' : post.status === 'failed' ? 'badge-failed' : post.status === 'publishing' ? 'badge-pending' : 'badge-pending';
-        const badgeText = post.status === 'published' ? 'Publicado' : post.status === 'failed' ? 'Falhou' : post.status === 'publishing' ? 'Publicando...' : 'Pendente';
-        const preview = post.caption.substring(0, 80) + (post.caption.length > 80 ? '...' : '');
-        const dateStr = new Date(post.date + 'T' + post.time).toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short' });
-        return `<div class="schedule-item">
-            <div class="sch-time"><div>${post.time}</div><div class="day">${dateStr}</div></div>
-            <div class="sch-content">
-                <div class="sch-title"><span class="badge ${badgeClass}">${badgeText}</span></div>
-                <div class="sch-preview">${escapeHtml(preview)}</div>
-            </div>
-            <div class="sch-actions">
-                ${post.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="publishSinglePost(${post.id})" title="Publicar agora">🚀</button>` : ''}
-                <button class="btn btn-danger btn-sm" onclick="removeFromSchedule(${post.id})" title="Remover">🗑️</button>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-async function publishNow() {
-    const caption = document.getElementById('modalCaption').value;
-    const image = document.getElementById('modalImage').value;
-    const hashtags = document.getElementById('modalHashtags').value;
-    if (!caption) { showToast('Legenda obrigatoria!'); return; }
-    if (!image) { showToast('URL da imagem obrigatoria para publicar!'); return; }
-    const fullCaption = caption + '\n\n' + hashtags;
-    const success = await publishToInstagram(image, fullCaption);
-    if (success) {
-        scheduledPosts.push({
-            id: Date.now(), date: new Date().toISOString().split('T')[0],
-            time: new Date().toTimeString().slice(0,5),
-            caption, image, hashtags, status: 'published',
-            createdAt: new Date().toISOString()
-        });
-        saveSchedule();
-        closeScheduleModal();
-        showToast('Post publicado com sucesso no Instagram!');
-    }
-}
-
-async function publishSinglePost(id) {
-    const post = scheduledPosts.find(p => p.id === id);
-    if (!post || post.status === 'publishing') return;
-    if (!post.image) { showToast('Post sem URL de imagem. Adicione uma imagem para publicar.'); return; }
-    post.status = 'publishing';
-    saveSchedule();
-    const fullCaption = post.caption + '\n\n' + post.hashtags;
-    const success = await publishToInstagram(post.image, fullCaption);
-    post.status = success ? 'published' : 'failed';
-    saveSchedule();
-    showToast(success ? 'Publicado com sucesso!' : 'Falha ao publicar. Verifique as configuracoes.');
-}
-
-async function publishToInstagram(imageUrl, caption) {
-    const accountId = localStorage.getItem('ig_account_id');
-    const token = localStorage.getItem('ig_access_token');
-    if (!accountId || !token) {
-        showToast('Configure o Instagram na aba Configuracoes primeiro!');
-        switchTab('settings');
-        return false;
-    }
-    try {
-        const createRes = await fetch(`https://graph.instagram.com/v21.0/${accountId}/media`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image_url: imageUrl, caption: caption, access_token: token })
-        });
-        const createData = await createRes.json();
-        if (createData.error) { showToast('Erro: ' + (createData.error.message || 'Falha ao criar midia')); return false; }
-        const publishRes = await fetch(`https://graph.instagram.com/v21.0/${accountId}/media_publish`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ creation_id: createData.id, access_token: token })
-        });
-        const publishData = await publishRes.json();
-        if (publishData.error) { showToast('Erro: ' + (publishData.error.message || 'Falha ao publicar')); return false; }
-        return true;
-    } catch (err) {
-        showToast('Erro de conexao. Tente novamente.');
-        return false;
-    }
-}
-
-let isPublishing = false;
-async function checkScheduledPosts() {
-    if (isPublishing) return;
-    const now = new Date();
-    const accountId = localStorage.getItem('ig_account_id');
-    const token = localStorage.getItem('ig_access_token');
-    if (!accountId || !token) return;
-    const pendingPosts = scheduledPosts.filter(p => p.status === 'pending');
-    if (pendingPosts.length === 0) return;
-    isPublishing = true;
-    try {
-        for (const post of pendingPosts) {
-            const postTime = new Date(post.date + 'T' + post.time);
-            if (now >= postTime && post.image) {
-                post.status = 'publishing';
-                saveSchedule();
-                const fullCaption = post.caption + '\n\n' + post.hashtags;
-                const success = await publishToInstagram(post.image, fullCaption);
-                post.status = success ? 'published' : 'failed';
-                saveSchedule();
-            }
-        }
-    } finally {
-        isPublishing = false;
-    }
-}
-setInterval(checkScheduledPosts, 60000);
-
-// =========================================================
-// SETTINGS
-// =========================================================
-
-function saveSettings() {
-    const accountId = document.getElementById('igAccountId').value.trim();
-    const token = document.getElementById('igAccessToken').value.trim();
-    if (!accountId || !token) { showToast('Preencha ambos os campos!'); return; }
-    localStorage.setItem('ig_account_id', accountId);
-    localStorage.setItem('ig_access_token', token);
-    updateConnectionStatus(true);
-    showToast('Configuracoes salvas!');
-}
-
-function clearSettings() {
-    localStorage.removeItem('ig_account_id');
-    localStorage.removeItem('ig_access_token');
-    document.getElementById('igAccountId').value = '';
-    document.getElementById('igAccessToken').value = '';
-    updateConnectionStatus(false);
-    showToast('Configuracoes removidas.');
-}
-
-async function testConnection() {
-    const accountId = localStorage.getItem('ig_account_id');
-    const token = localStorage.getItem('ig_access_token');
-    if (!accountId || !token) { showToast('Salve as configuracoes primeiro!'); return; }
-    try {
-        const res = await fetch(`https://graph.instagram.com/v21.0/${accountId}?fields=name,username,profile_picture_url&access_token=${token}`);
-        const data = await res.json();
-        if (data.error) { showToast('Erro: ' + (data.error.message || 'Token invalido')); updateConnectionStatus(false); }
-        else { showToast(`Conectado como @${data.username || data.name}!`); updateConnectionStatus(true); }
-    } catch (err) { showToast('Erro de conexao.'); updateConnectionStatus(false); }
-}
-
-function updateConnectionStatus(connected) {
-    document.getElementById('statusDot').className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
-    document.getElementById('statusText').textContent = connected ? 'Conectado' : 'Desconectado';
-}
-
-function loadSettings() {
-    const accountId = localStorage.getItem('ig_account_id') || '';
-    const token = localStorage.getItem('ig_access_token') || '';
-    document.getElementById('igAccountId').value = accountId;
-    document.getElementById('igAccessToken').value = token;
-    updateConnectionStatus(!!accountId && !!token);
-}
-
-// =========================================================
-// HISTORY
-// =========================================================
-
-function saveToHistory(postType, category, service, caption, hashtags) {
-    history.unshift({
-        date: new Date().toLocaleString('pt-BR'),
-        postType, category, service,
-        caption: caption.substring(0, 100) + '...',
-        fullCaption: caption, hashtags
-    });
-    if (history.length > 50) history.pop();
-    localStorage.setItem('promptHistory', JSON.stringify(history));
-    renderHistory();
-}
+function showSaved(i) { currentCards = [saved[i]]; renderCards(currentCards); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function removeSaved(i) { saved.splice(i, 1); localStorage.setItem('fe_saved', JSON.stringify(saved)); renderSaved(); showToast('Removido dos salvos.'); }
 
 function renderHistory() {
-    const list = document.getElementById('historyList');
-    if (history.length === 0) {
-        list.innerHTML = '<p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;padding:2rem;">Nenhum prompt gerado ainda.</p>';
-        return;
-    }
-    const catLabels = { educacional:"Educacional", dica:"Dica", bastidores:"Bastidores", antes_depois:"A&D", promocional:"Promo", depoimento:"Depoimento", curiosidade:"Curiosidade", tendencia:"Tendencia", humor:"Humor", motivacional:"Motivacional" };
-    list.innerHTML = history.slice(0,20).map((item) => {
-        const safeCaption = item.fullCaption.replace(/\\/g,'\\\\').replace(/`/g,'\\`');
-        return `<div class="history-item" onclick="copyText(\`${safeCaption}\`,null)">
-            <div><div class="title">${catLabels[item.category]||item.category} - ${item.postType}</div><div class="meta">${item.date}</div></div>
-            <button class="copy-btn" onclick="event.stopPropagation();copyText(\`${safeCaption}\`,this)">Copiar</button>
-        </div>`;
-    }).join('');
+  var list = document.getElementById('historyList'), statsGrid = document.getElementById('statsGrid');
+  statsGrid.innerHTML = '<div class="stat-card"><div class="stat-value">' + genCount + '</div><div class="stat-label">Geracoes</div></div><div class="stat-card"><div class="stat-value">' + historyList.length + '</div><div class="stat-label">No Historico</div></div><div class="stat-card"><div class="stat-value">' + saved.length + '</div><div class="stat-label">Salvos</div></div>';
+  if (!historyList.length) { list.innerHTML = '<div class="empty-state"><div class="empty-txt">Nenhum prompt gerado ainda.</div></div>'; return; }
+  list.innerHTML = historyList.slice(0, 30).map(function(item, i) {
+    var title = (item.cards && item.cards[0] && item.cards[0].titulo) || item.tipo;
+    return '<div class="hist-item" onclick="loadHistory(' + i + ')"><div><div class="hist-title">' + escHtml(title) + ' (' + item.qtd + ' prompts)</div><div class="hist-meta">' + escHtml(item.date) + ' &middot; ' + escHtml(item.formato) + ' &middot; ' + escHtml(item.tom) + '</div></div><div class="hist-actions"><button class="btn-sm btn-gold" onclick="event.stopPropagation();loadHistory(' + i + ')">Ver</button><button class="btn-sm btn-red" onclick="event.stopPropagation();removeHistory(' + i + ')">X</button></div></div>';
+  }).join('');
+  document.getElementById('clearHistBtn').style.display = 'block';
 }
 
-// =========================================================
-// CALENDAR
-// =========================================================
+function loadHistory(i) { currentCards = historyList[i].cards; switchTab('gerador'); renderCards(currentCards); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function removeHistory(i) { historyList.splice(i, 1); localStorage.setItem('fe_history', JSON.stringify(historyList)); renderHistory(); showToast('Removido do historico.'); }
+function clearHistory() { if (!confirm('Limpar todo o historico?')) return; historyList = []; localStorage.setItem('fe_history', '[]'); renderHistory(); showToast('Historico limpo.'); }
+
+function renderTemplates() {
+  document.getElementById('templatesGrid').innerHTML = QUICK_TEMPLATES.map(function(tpl, i) {
+    return '<div class="template-card" onclick="useTemplate(' + i + ')"><div class="emoji">' + tpl.emoji + '</div><div class="name">' + escHtml(tpl.name) + '</div><div class="desc">' + escHtml(tpl.cat) + '</div></div>';
+  }).join('');
+}
+
+function useTemplate(i) {
+  var tpl = QUICK_TEMPLATES[i]; switchTab('gerador');
+  document.querySelectorAll('#formatGroup .chip').forEach(function(c) { c.classList.toggle('active', c.dataset.value === tpl.format); });
+  document.querySelectorAll('#catGroup .chip').forEach(function(c) { c.classList.toggle('active', c.dataset.value === tpl.cat); });
+  document.getElementById('sel-tom').value = tpl.tom; document.getElementById('sel-qtd').value = '3';
+  setTimeout(function() { gerar(); }, 200);
+}
 
 function generateCalendar() {
-    const service = document.getElementById('service')?.value || 'geral';
-    const days = Object.entries(CALENDAR_THEMES);
-    const dayNames = { segunda:"Segunda-feira", terca:"Terca-feira", quarta:"Quarta-feira", quinta:"Quinta-feira", sexta:"Sexta-feira", sabado:"Sabado", domingo:"Domingo" };
-    let html = '<div style="display:grid;gap:0.75rem;margin-top:1rem;">';
-    days.forEach(([day, info]) => {
-        const isSabado = day === 'sabado';
-        const svc = isSabado ? (["montagem_pc","manutencao_pc","redes","formatacao","notebook"][Math.floor(Math.random()*5)]) : service;
-        const topics = TOPICS_BY_SERVICE[svc] || TOPICS_BY_SERVICE.geral;
-        const topic = randomItem(topics);
-        const hooks = HOOKS[info.cat] || HOOKS.educacional;
-        const hook = randomItem(hooks).replace("{tema}", topic).replace("{ano}", new Date().getFullYear());
-        html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;gap:1rem;align-items:flex-start;">
-            <div style="font-size:1.5rem;">${info.emoji}</div>
-            <div style="flex:1;"><div style="font-weight:700;font-size:0.9rem;color:var(--primary);">${dayNames[day]}</div>
-            <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.3rem;">${info.tema}</div>
-            <div style="font-size:0.85rem;font-weight:500;">"${hook}"</div>
-            <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:0.2rem;">Topico: ${topic}</div></div></div>`;
-    });
-    html += '</div><div class="btn-group" style="justify-content:center;margin-top:1rem;"><button class="btn btn-secondary" onclick="generateCalendar()">🔄 Gerar Novo</button></div>';
-    document.getElementById('calendarResult').innerHTML = html;
+  var days = [['segunda', CALENDAR_THEMES.segunda], ['terca', CALENDAR_THEMES.terca], ['quarta', CALENDAR_THEMES.quarta], ['quinta', CALENDAR_THEMES.quinta], ['sexta', CALENDAR_THEMES.sexta], ['sabado', CALENDAR_THEMES.sabado], ['domingo', CALENDAR_THEMES.domingo]];
+  var dayNames = { segunda: 'Segunda-feira', terca: 'Terca-feira', quarta: 'Quarta-feira', quinta: 'Quinta-feira', sexta: 'Sexta-feira', sabado: 'Sabado', domingo: 'Domingo' };
+  document.getElementById('calendarResult').innerHTML = days.map(function(entry) {
+    var day = entry[0], info = entry[1];
+    var cat = info.cats[Math.floor(Math.random() * info.cats.length)];
+    var temas = temasPorTipo[cat] || temasPorTipo.informatica;
+    var tema = temas[Math.floor(Math.random() * temas.length)];
+    var temaShort = tema.length > 80 ? tema.substring(0, 80) + '...' : tema;
+    return '<div class="cal-item"><div class="cal-emoji">' + info.emoji + '</div><div class="cal-info"><div class="cal-day">' + dayNames[day] + '</div><div class="cal-tema">' + escHtml(info.tema) + '</div><div class="cal-hook">"' + escHtml(temaShort) + '"</div><div class="cal-topic">Categoria: ' + escHtml(cat) + '</div></div></div>';
+  }).join('') + '<div style="text-align:center;padding:14px;"><button class="action-btn primary" onclick="generateCalendar()">Gerar Novo Calendario</button></div>';
 }
 
-// =========================================================
-// INITIALIZATION
-// =========================================================
-
-function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
-    ['generator','templates','calendar','schedule','history','settings'].forEach(id => {
-        const el = document.getElementById('tab-' + id);
-        if (el) el.style.display = id === tabName ? 'block' : 'none';
-    });
-    if (tabName === 'history') renderHistory();
-    if (tabName === 'schedule') renderSchedule();
-    if (tabName === 'settings') loadSettings();
+function onProviderChange() {
+  document.getElementById('modelGroup').style.display = document.getElementById('cfg-provider').value === 'groq' ? 'block' : 'none';
+}
+function saveApiConfig() {
+  var provider = document.getElementById('cfg-provider').value, apiKey = document.getElementById('cfg-apikey').value.trim(), model = document.getElementById('cfg-model').value;
+  if (!apiKey) { showToast('Insira a chave da API!'); return; }
+  localStorage.setItem('fe_provider', provider); localStorage.setItem('fe_apikey', apiKey); localStorage.setItem('fe_model', model);
+  document.getElementById('apiStatus').innerHTML = '<span style="color:var(--green);">Configuracao salva!</span>'; showToast('Config da IA salva!');
+}
+function testApiConfig() {
+  var cfg = getApiConfig();
+  if (!cfg.apiKey) { showToast('Salve a config primeiro!'); return; }
+  document.getElementById('apiStatus').innerHTML = '<span style="color:var(--text4);">Testando conexao...</span>';
+  var testPromise;
+  if (cfg.provider === 'gemini') {
+    testPromise = fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + cfg.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Responda apenas: OK' }] }] }) })
+      .then(function(resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); document.getElementById('apiStatus').innerHTML = '<span style="color:var(--green);">Gemini conectado com sucesso!</span>'; });
+  } else {
+    testPromise = fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Authorization': 'Bearer ' + cfg.apiKey.trim(), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: cfg.model, messages: [{ role: 'user', content: 'Responda apenas: OK' }], max_tokens: 5 }) })
+      .then(function(resp) { if (!resp.ok) throw new Error('HTTP ' + resp.status); document.getElementById('apiStatus').innerHTML = '<span style="color:var(--green);">Groq (' + cfg.model + ') conectado!</span>'; });
+  }
+  testPromise.then(function() { showToast('Conexao OK!'); }).catch(function(err) { document.getElementById('apiStatus').innerHTML = '<span style="color:var(--red);">Erro: ' + escHtml(err.message) + '</span>'; showToast('Falha na conexao!'); });
+}
+function clearApiConfig() {
+  localStorage.removeItem('fe_provider'); localStorage.removeItem('fe_apikey'); localStorage.removeItem('fe_model');
+  document.getElementById('cfg-apikey').value = ''; document.getElementById('apiStatus').innerHTML = '<span style="color:var(--text4);">Config removida.</span>'; showToast('Config da IA removida.');
 }
 
-document.querySelectorAll('.chip-group').forEach(group => {
-    group.querySelectorAll('.chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-        });
-    });
+function saveIgConfig() {
+  var accountId = document.getElementById('igAccountId').value.trim(), token = document.getElementById('igAccessToken').value.trim();
+  if (!accountId || !token) { showToast('Preencha ambos os campos!'); return; }
+  localStorage.setItem('ig_account_id', accountId); localStorage.setItem('ig_access_token', token);
+  updateIgStatus(true); showToast('Instagram configurado!');
+}
+function testIgConnection() {
+  var accountId = localStorage.getItem('ig_account_id'), token = localStorage.getItem('ig_access_token');
+  if (!accountId || !token) { showToast('Salve a config primeiro!'); return; }
+  fetch('https://graph.instagram.com/v21.0/' + accountId + '?fields=name,username&access_token=' + token)
+    .then(function(res) { return res.json(); })
+    .then(function(data) { if (data.error) { showToast('Erro: ' + (data.error.message || 'Token invalido')); updateIgStatus(false); } else { showToast('Conectado como @' + (data.username || data.name) + '!'); updateIgStatus(true); } })
+    .catch(function() { showToast('Erro de conexao.'); updateIgStatus(false); });
+}
+function clearIgConfig() {
+  localStorage.removeItem('ig_account_id'); localStorage.removeItem('ig_access_token');
+  document.getElementById('igAccountId').value = ''; document.getElementById('igAccessToken').value = '';
+  updateIgStatus(false); showToast('Config do Instagram removida.');
+}
+function updateIgStatus(connected) {
+  document.getElementById('igStatusDot').className = 'status-dot ' + (connected ? 'on' : 'off');
+  document.getElementById('igStatusText').textContent = connected ? 'Conectado' : 'Desconectado';
+}
+function loadConfigs() {
+  var provider = localStorage.getItem('fe_provider') || 'groq', apiKey = localStorage.getItem('fe_apikey') || '', model = localStorage.getItem('fe_model') || 'llama-3.3-70b-versatile';
+  document.getElementById('cfg-provider').value = provider; document.getElementById('cfg-apikey').value = apiKey; document.getElementById('cfg-model').value = model;
+  onProviderChange();
+  if (apiKey) document.getElementById('apiStatus').innerHTML = '<span style="color:var(--green);">Chave configurada (' + provider + ')</span>';
+  var igId = localStorage.getItem('ig_account_id') || '', igToken = localStorage.getItem('ig_access_token') || '';
+  document.getElementById('igAccountId').value = igId; document.getElementById('igAccessToken').value = igToken;
+  updateIgStatus(!!igId && !!igToken);
+}
+
+document.querySelectorAll('.chip-group').forEach(function(group) {
+  group.querySelectorAll('.chip').forEach(function(chip) {
+    chip.addEventListener('click', function() { group.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); }); chip.classList.add('active'); });
+  });
 });
-
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-});
-
-const grid = document.getElementById('templatesGrid');
-QUICK_TEMPLATES.forEach(tpl => {
-    const card = document.createElement('div');
-    card.className = 'template-card';
-    card.innerHTML = `<div class="emoji">${tpl.emoji}</div><div class="name">${tpl.name}</div><div class="desc">${tpl.desc}</div>`;
-    card.addEventListener('click', () => {
-        switchTab('generator');
-        document.getElementById('postType').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.type));
-        document.getElementById('category').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === tpl.category));
-        document.getElementById('tone').value = tpl.tone;
-        if (tpl.service) { document.getElementById('service').value = tpl.service; updateTopicSuggestions(); }
-        setTimeout(() => generatePrompts(), 200);
-    });
-    grid.appendChild(card);
-});
-
-loadTheme();
-renderHistory();
-renderSchedule();
-updateTopicSuggestions();
-
-const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-const dateInput = document.getElementById('scheduleDate');
-if (dateInput) dateInput.value = tomorrow.toISOString().split('T')[0];
+document.querySelectorAll('.tab').forEach(function(tab) { tab.addEventListener('click', function() { switchTab(tab.dataset.tab); }); });
+loadTheme(); initDate(); renderTemplates(); renderSaved();
 </script>
 </body>
 </html>
